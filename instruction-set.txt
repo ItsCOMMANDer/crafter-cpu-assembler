@@ -1,0 +1,90 @@
+Idx | Reg | Bits | Function
+0   | A   | 8    | General purpose/accumulator
+1   | B   | 8    | General purpose
+2   | C   | 8    | General purpose
+3   | H   | 8    | High bits of 16 bit general purpose reg HL
+4   | L   | 8    | Low bits of HL
+5   | PC  | 16   | Program counter
+6   | SP  | 8    | Stack pointer
+7   | BP  | 8    | Base pointer
+
+([<REG>] means "value at memory address <REG>")
+
+16 bits per instruction
+Op    | Name   | Usage                               | Description
+00000 | ADD    | ADD  <REG 1>, <REG 2>               | Adds value of <REG 2> to <REG 1>
+00001 | SUB    | SUB  <REG 1>, <REG 2>               | Subtracts value of <REG 2> from <REG 1>
+00010 | ADC    | ADC  <REG 1>, <REG 2>               | Adds <REG 2> and carry flag to <REG 1>
+00011 | SBC    | SBC  <REG 1>, <REG 2>               | Subtracts <REG 2> and the carry flag from <REG 1>
+00100 | NAND   | NAND <REG 1>, <REG 2>               | NANDs <REG 1> with <REG 2> 
+00101 | XOR    | XOR  <REG 1>, <REG 2>               | XORs <REG 1> with <REG 2>
+00110 | CMP    | CMP  <REG 1>, <REG 2>               | compares <REG 1> with <REG 2>
+00111 | SHL    | SHL  <REG>                          | Left-Shifts <REG>
+01000 | SHR    | SHR  <REG>                          | Right-Shifts <REG>
+01001 | INC    | INC  <REG>                          | increments <REG> by 1
+01010 | DEC    | DEC  <REG>                          | decrements <REG> by 1
+01011 | JMP    | JMP  <OFFSET>                       | jumps to relative adress <OFFSET>
+01100 | JZ     | JZ   <OFFSET>                       | jumps to relative adress <OFFSET> if Zero-flag is set
+01101 | JN     | JN   <OFFSET>                       | jumps to relative adress <OFFSET> if negative-flag is set
+01110 | LDIR   | LD   <REG> <- <Immediate>           | loads value <Immediate> into <REG>
+01111 | LDRR   | LD   <REG 1> <- <REG 2>             | loads value from <REG 2> in to <REG 1>
+10000 | LDRMR  | LD   <REG 1> <- [<REG 2>]           | loads the value of the dereferenced bytepointer <REG 2> in to <REG 1>
+10001 | LDMRR  | LD   [<REG 1>] <- <REG 2>           | loads the value of <REG 2> into the bytepointer <REG 1>
+10010 | LDRMRR | LD   <REG 1> <- [<REG 2> + <REG 3>] | loads the value of the dereferenced bytepointer wich is the reult of the addition of <REG 2> and <REG 3> in to <REG 1>
+10011 | LDMRRR | LD   [<REG 1> + <REG 2>] <- <REG 3> | loads the value of <REG 1> in to the bytepointer wich is the reult of the addition of <REG 2> and <REG 3> 
+10100 | PUSH   | PUSH <REG>                          | Pushes value of <REG> on to the stack
+10101 | POP    | POP  <REG>                          | Pulls value of <REG> off the stack
+10110 | undefined                                    | undefined
+10111 | undefined                                    | undefined
+11000 | undefined                                    | undefined
+11001 | undefined                                    | undefined
+11010 | undefined                                    | undefined
+11011 | undefined                                    | undefined
+11100 | undefined                                    | undefined
+11101 | undefined                                    | undefined
+11110 | undefined                                    | undefined 
+11111 | NOP    | NOP                                 | does littraly nothing
+
+Possible ways to reduce complexity:
+- hard wire register A to some functions, e.g. first or second operand of ALU instructions, or destination of ALU instructions
+- get rid of the more complex addressing modes (LDRMRR, LDMRRR)
+- maybe we don't need SHL and SHR
+
+Possible cool things for programming:
+- Arithmetic on immediates (ADD <REG>,<Immediate>)
+- Allow comparison with immediates
+
+instruction format
+==================
+
+5 bits for opcode
+then either:
+    3 bits for source register and 3 bits for destination
+or
+    11 bits for relative jump address
+or
+    3 bits for register, 3 bits unused and 8 bits for immediate value
+
+00000 xxx xxx xxxxx -> NOP
+00001 001 010 xxxxx -> ADD A, B
+  |    |   |  
+  |    |   \-- Reg B
+  |    \------ Reg A
+  \----------- ADD opcode
+
+
+01001 11111111001
+  |    |
+  |    \------ -7 words, two's compliment
+  \----------- JZ opcode
+
+01010 001 xxx 01010101 -> LD b, 85
+  |    |       |      
+  |    |       |
+  |    |       \------- numeber 85
+  |    \--------------- Register B
+  \-------------------- LDIR opcode
+
+
+TODO:
+- Figure out how HL as a pair could be used
