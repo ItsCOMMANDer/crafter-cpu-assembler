@@ -38,7 +38,7 @@ enum instruction_set {
     NOP = 0b11111,
 };
 
-int preprocess(char* source_file_name, char output_file_name) {
+int preprocess(char* source_file_name, char* output_file_name) {
     FILE *source_file = fopen(source_file_name, "r");
     if(source_file == NULL) {
         perror("Error opening file ");
@@ -50,40 +50,83 @@ int preprocess(char* source_file_name, char output_file_name) {
         fclose(source_file);
         return -1;
     }
-    bool singleLineComment = 0;
-    bool multilineComment = 0;
-    char readChar;
-    while((readChar = fgetc(source_file)) != EOF) {
-        if(readChar == '/') {
+    _Bool singleLineComment = 0;
+    _Bool multilineComment = 0;
+    _Bool charAfterNewLine = 0;
+    int numberOfCharsBeforeNewLine = 0;
+    int readChar;
+
+    readChar = fgetc(source_file);
+    while(readChar != EOF) {
+        if((char)readChar == '/') {
             if(fgetc(source_file) == '/') {
-                singleLineComment = true;
+                singleLineComment = 1;
                 fseek(source_file, -1, SEEK_CUR);
             } else fseek(source_file, -1, SEEK_CUR);
-            
+
             if(fgetc(source_file) == '*') {
-                multilineComment = true;
+                multilineComment = 1;
                 fseek(source_file, -1, SEEK_CUR);
             } else fseek(source_file, -1, SEEK_CUR);
         }
-        if(readChar == '\n') singleLineComment = false;
+
+        if((char)readChar != ' ' && (char)readChar != '\t' && (char)readChar != '\n' && singleLineComment == 0 && multilineComment == 0) {
+            charAfterNewLine = 1;
+            numberOfCharsBeforeNewLine = 0;
+        } else if(((char)readChar == ' ' || (char)readChar == '\t') && singleLineComment == 0 && multilineComment == 0) {
+            numberOfCharsBeforeNewLine--;
+        }
+
+        if((char)readChar == '\n' && singleLineComment == 0 && multilineComment == 0) {
+            fseek(output_file, numberOfCharsBeforeNewLine, SEEK_CUR);
+            numberOfCharsBeforeNewLine = 0;
+            singleLineComment = 0;
+        }
+
+        if(singleLineComment == 0 && multilineComment == 0 && charAfterNewLine == 1) {
+            fputc((char)readChar, output_file);
+            if((char)readChar == '\n') charAfterNewLine = 0;
+        }
+
         if(readChar == '*') {
             if(fgetc(source_file) == '/') {
-                multilineComment = false;
-                fseek(source_file, -1, SEEK_CUR);
+                multilineComment = 0;
+                fseek(source_file, 1, SEEK_CUR);
             } else fseek(source_file, -1, SEEK_CUR);
         }
-
-        if((singleLineComment | multilineComment) == 0 ) {
-            fputc(readChar, output_file);
-        }
+        readChar = fgetc(source_file);
     }
-    fclose(source_file);
     fclose(output_file);
-    return 0;
+    output_file = fopen(output_file_name, "r");
+    int charAmount = 0;
+    while((readChar = getc(output_file)) != EOF) charAmount++;
+    charAmount+=numberOfCharsBeforeNewLine;
+    char* outputFileResize = calloc(charAmount, sizeof(char));
+    if(outputFileResize == NULL) {
+        perror("Memory allocation failed");
+        fclose(output_file);
+        fclose(source_file);
+        return -1;
+    }
+
+    fseek(output_file, 0, SEEK_SET);
+
+    for(int i = 0; i < charAmount; i++) {
+        outputFileResize[i] = getc(output_file);
+    }
+    fclose(output_file);
+
+    output_file = fopen(output_file_name, "w");
+    for(int i = 0; i < charAmount; i++) {
+        fputc(outputFileResize[i], output_file);
+    }
+
+    free(outputFileResize);
+    fclose(output_file);
+    fclose(source_file);
 }
 
-int main(int argc, char** argv) {
-
+int main(int argc, char** argv) {    
     // Open source file
     FILE* source_file = fopen(argv[1], "r");
     if(source_file == NULL) {
