@@ -22,3 +22,4 @@ CALCULATE:
     BNEZ r3, CALCULATE  /* Jump back to CALCULATE if r3 is not zero       o*/
 
     HALT            /* Halt the program*/
+

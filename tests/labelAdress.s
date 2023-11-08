@@ -1,0 +1,14 @@
+a:
+Mov1
+Mov
+Mov
+b:
+Mov
+Mov
+Mov
+Mov
+Mov
+c:
+Mov
+Mov
+d:

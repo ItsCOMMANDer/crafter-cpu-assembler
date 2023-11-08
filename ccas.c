@@ -126,9 +126,13 @@ int preprocess(char* source_file_name, char* output_file_name) {
     fclose(source_file);
 }
 
-int main(int argc, char** argv) {    
+int main(int argc, char** argv) {
+    char *input_file_name = "tests\\simple.s";
+    char *output_file_name = "tests\\simpleOut.s";
+
+    preprocess(input_file_name, output_file_name);
     // Open source file
-    FILE* source_file = fopen(argv[1], "r");
+    FILE* source_file = fopen(output_file_name, "r");
     if(source_file == NULL) {
         perror("Error opening file ");
         return -1;
@@ -168,135 +172,62 @@ int main(int argc, char** argv) {
         perror("Memory allocation for code array Failed ");
         return 1;
     }
-    
+    int charIndex = 0;
+    int readChar;
     fseek(source_file, 0, SEEK_SET);
     for(i = 0; i < lines; i++) {
         code[i] = (char*)calloc(characterAmount[i] + 1, sizeof(char));
-        fgets(code[i], characterAmount[i] + 2, source_file);
+
         if(code[i] == NULL) {
             perror("Memory allocation Failed ");
             return 1;
         }
-    }
 
-    // Search and count for labels
-    int amountOfLabels = 0;
-    for(i = 0; i < lines; i++) {
-        bool slashEncounterd = false;
-        bool colonEncounterd = false;
-        for(int j = 0; j < characterAmount[i]; j++) {
-            if(code[i][j] == ':') {
-                colonEncounterd = true;
-                break;
-            }
-            if(slashEncounterd && code[i][j] == '/') {
-                slashEncounterd = false;
-                break;
-            }
-            if(code[i][j] == '/') slashEncounterd = true;
+        while((readChar = getc(source_file)) != '\n' && readChar != EOF) {
+            code[i][charIndex] = readChar;
+            charIndex++;
         }
-        if(colonEncounterd) amountOfLabels++;
+        charIndex = 0;
+        code[i][characterAmount[i] + 1] = 0;
     }
 
-    char** label = (char**)malloc(amountOfLabels * sizeof(char*));
+    
+    int amountOfLabels = 0;    
+    for(int i = 0; i < lines; i++) {
+        if(code[i][strlen(code[i]) - 1] == ':') amountOfLabels++;
+    }
+    
+    char** label = calloc(amountOfLabels, sizeof(char*));
+    short* labelAddresses = calloc(amountOfLabels, sizeof(short));
     int labelIndex = 0;
-    if(label == NULL) {
-        perror("Memory allocation for label array Failed ");
-        return 1;
-    }
-
-    // Copy labels into String array (2d char array)
-    for(i = 0; i < lines; i++) {
-        bool slashEncounterd = false;
-        bool colonEncounterd = false;
-        for(int j = 0; j < characterAmount[i]; j++) {
-            if(code[i][j] == ':') {
-                colonEncounterd = true;
-                break;
-            }
-            if(slashEncounterd && code[i][j] == '/') {
-                slashEncounterd = false;
-                break;
-            }
-            if(code[i][j] == '/') slashEncounterd = true;
-        }
-        if(colonEncounterd) {
-            int j;
-            int amountOfCharsInLabel = 0;
-            bool containsOnlyNumber = true;
-            for(j = 0; j < characterAmount[i]; j++) {
-                if(code[i][j] == ' ') {
-                    printf("Error in %s:%d:%d\n\tLabels can't contain Spaces.\n", argv[1], i, j + 1);
-                    for(int p = 0; p < labelIndex; p++) {
-                        free(label[p]);
-                    }
-                    free(label);
-                    for (int p = 0; p < lines; p++) {
-                        free(code[p]);
-                    }
-                    free(code);
-                    free(characterAmount);
-                    fclose(source_file);
-                    return 2;
-                }
-                if(code[i][j] == ':') break;
-                else amountOfCharsInLabel++;
-                switch(code[i][j]) {
-                    case '0':break;
-                    case '1':break;
-                    case '2':break;
-                    case '3':break;
-                    case '4':break;
-                    case '5':break;
-                    case '6':break;
-                    case '7':break;
-                    case '8':break;
-                    case '9':break;
-                    case '-':break;
-                    default:
-                        containsOnlyNumber = false;
-                        break;
-                }
-            }
-            if(containsOnlyNumber) {
-                printf("Error in label in %s:%d\n\tLabel cannot be named a number.\n", argv[1], i);
-                for(int p = 0; p < labelIndex; p++) {
-                        free(label[p]);
-                    }
-                    free(label);
-                    for (int p = 0; p < lines; p++) {
-                        free(code[p]);
-                    }
-                    free(code);
-                    free(characterAmount);
-                    fclose(source_file);
-                    return 2;
-            }
-            label[labelIndex] = (char*)calloc(amountOfCharsInLabel + 1, sizeof(char));
-            for(j = 0; j < amountOfCharsInLabel; j++) {
+    for(int i = 0; i < lines; i++) {
+        if(code[i][strlen(code[i]) - 1] == ':') {
+            label[labelIndex] = calloc(strlen(code[i]), sizeof(char));
+            for(int j = 0; j < strlen(code[i]) - 1; j++) {
                 label[labelIndex][j] = code[i][j];
+                label[labelIndex][strlen(code[i])] = 0;
             }
+            labelAddresses[labelIndex] = i - labelIndex;
             labelIndex++;
-
         }
     }
 
-    short *binary_code = calloc(lines - amountOfLabels, sizeof(short));
-    printf("%d code?\n", lines - amountOfLabels);
-
+    for(int i = 0; i < labelIndex; i++) {
+        printf("Label \"%s\" at address %d\n", label[i], labelAddresses[i]);
+    }
 
     // clean up
+    for(int i = 0; i < amountOfLabels; i++) {
+        free(label[i]);
+    }
+    free(label);
+    free(labelAddresses);
+
     for (i = 0; i < lines; i++) {
         free(code[i]);
     }
 
-    for (i = 0; i < amountOfLabels; i++) {
-        free(label[i]);
-    }
-
-    free(label);
     free(code);
-    free(binary_code);
     free(characterAmount);
     fclose(source_file);
     return 0;
