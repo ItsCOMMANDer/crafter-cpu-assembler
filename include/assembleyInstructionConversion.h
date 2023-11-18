@@ -47,15 +47,88 @@ typedef enum instruction_set {
     UNDEFINED7 = 0b1110100000000000,
     UNDEFINED8 = 0b1111000000000000,
     NOP = 0b1111100000000000,
+    NAI = 0b11111111111111111111111111111111
 } OPCODE_t;
 
 
 typedef enum instructionToken {
-    OPCODE = 0,
-    REGISTER = 1,
-    IMMIDIETE = 2,
-    UNUSED = 3
+    REGISTER = 0,
+    IMMIDIETE = 1,
+    OFFSET = 2,
+    NONE = 3,
 } instructionToken_t;
+
+const instructionToken_t instructionPattern[][] = {
+    {REGISTER, REGISTER, NONE},
+    {REGISTER, REGISTER, NONE},
+    {REGISTER, REGISTER, NONE},
+    {REGISTER, REGISTER, NONE},
+    {REGISTER, REGISTER, NONE},
+    {REGISTER, REGISTER, NONE},
+    {REGISTER, REGISTER, NONE},
+    {REGISTER, NONE, NONE},
+    {REGISTER, NONE, NONE},
+    {REGISTER, NONE, NONE},
+    {REGISTER, NONE, NONE},
+    {OFFSET, NONE, NONE},
+    {OFFSET, NONE, NONE},
+    {OFFSET, NONE, NONE},
+    {REGISTER, IMMIDIETE, NONE},
+    {REGISTER, REGISTER, NONE},
+    {REGISTER, REGISTER, NONE},
+    {REGISTER, REGISTER, NONE},
+    {REGISTER, REGISTER, REGISTER},
+    {REGISTER, REGISTER, REGISTER},
+    {REGISTER, NONE, NONE},
+    {REGISTER, NONE, NONE},
+    {NONE, NONE, NONE},
+    {NONE, NONE, NONE},
+    {NONE, NONE, NONE},
+    {NONE, NONE, NONE},
+    {NONE, NONE, NONE},
+    {NONE, NONE, NONE},
+    {NONE, NONE, NONE},
+    {NONE, NONE, NONE},
+    {NONE, NONE, NONE},
+    {NONE, NONE, NONE},
+    {NONE, NONE, NONE},
+}
+
+const int amountOfParamsForInstruction[] {
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    2,
+    2,
+    2,
+    2,
+    2,
+    2,
+    3,
+    3,
+    1,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+}
 
 typedef enum registerIndex {
     A = 0, 
@@ -193,7 +266,7 @@ OPCODE_t getOpcode(char* opcodeSting) {
     for(int i = 0; i < INTRUCTION_COUNT; i++) {
         if(strcmp(opcodeSting, instructions[i]) == 0) return opcodes[i];
     }
-    
+    return NAI;
 } 
 
 typedef struct {

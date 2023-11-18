@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <stdint.h>
+#include "include/assembleyInstructionConversion.h"
 
 int main(int argc, char** argv) {
     char *input_file_name = "tests\\simple.s";
@@ -76,7 +77,8 @@ int main(int argc, char** argv) {
     }
     
     char** label = calloc(amountOfLabels, sizeof(char*));
-    short* labelAddresses = calloc(amountOfLabels, sizeof(short));
+    uint16_t* labelAddresses = calloc(amountOfLabels, sizeof(uint16_t));
+    uint16_t* labelLine = calloc(amountOfLabels, sizeof(uint16_t));
     int labelIndex = 0;
     for(int i = 0; i < lines; i++) {
         if(code[i][strlen(code[i]) - 1] == ':') {
@@ -84,15 +86,48 @@ int main(int argc, char** argv) {
             for(int j = 0; j < strlen(code[i]) - 1; j++) {
                 label[labelIndex][j] = code[i][j];
                 label[labelIndex][strlen(code[i])] = 0;
+                labelLine[labelIndex] = i;
             }
             labelAddresses[labelIndex] = i - labelIndex;
             labelIndex++;
         }
     }
 
+    uint16_t *machine_code = calloc(lines - amountOfLabels, sizeof(uint16_t));
+    asmParamsResult_t instruction;
+    OPCODE_t opcodeRes;
+    int lineIndex = 0;
     
+    for(int lineIndex = 0; lineIndex < lines; lineIndex++) {
+        for(int j = 0; j < amountOfLabels; j++) {
+            if(lineIndex == labelLine[j]) continue;
+        }
+        instruction = getParametersFromAsembly(code[lineIndex]);
+        if(opcodeRes = getOpcode(instruction.params[0]) != NAI) {
+            if(instruction.amountOfParams == amountOfParamsForInstruction[(int)opcodeRes]) {
+                //todo: continue
+            } else {
+                printf("Error in line:%d. %s Arguments for the instruction.\n", instruction.amountOfParams > amountOfParamsForInstruction[(int)opcodeRes] ? "Too little" : "Too many");
+                for(int k = 0; k < instruction.amountOfParams; k++) {
+                    free(instruction.params[k]);
+                }
+                free(instruction.params);
+                goto cleanup;
+            }
+        } else {
+            printf("Error at line %d, instruction \"%s\" doesnt exist\n", instruction.params[0]);
+            for(int k = 0; k < instruction.amountOfParams; k++) {
+                free(instruction.params[k]);
+            }
+            free(instruction.params);
+            goto cleanup;
+        }
+
+        lineIndex++;
+    }
 
     // clean up
+    cleanup:
     for(int i = 0; i < amountOfLabels; i++) {
         free(label[i]);
     }
