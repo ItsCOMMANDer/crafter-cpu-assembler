@@ -6,8 +6,8 @@
 #include "include/assembleyInstructionConversion.h"
 
 int main(int argc, char** argv) {
-    char *input_file_name = "tests\\simple.s";
-    char *output_file_name = "tests\\simpleOut.s";
+    char *input_file_name = "asmIN.s";
+    char *output_file_name = "asmOUT.s";
 
     preprocess(input_file_name, output_file_name);
     // Open source file
@@ -97,17 +97,37 @@ int main(int argc, char** argv) {
     asmParamsResult_t instruction;
     OPCODE_t opcodeRes;
     int lineIndex = 0;
+    int instructionIndex = 0;
     
-    for(int lineIndex = 0; lineIndex < lines; lineIndex++) {
+    uint16_t params[3];
+
+    for(int lineIndex = 0; lineIndex < lines - amountOfLabels; lineIndex++) {
         for(int j = 0; j < amountOfLabels; j++) {
             if(lineIndex == labelLine[j]) continue;
         }
         instruction = getParametersFromAsembly(code[lineIndex]);
         if(opcodeRes = getOpcode(instruction.params[0]) != NAI) {
             if(instruction.amountOfParams == amountOfParamsForInstruction[(int)opcodeRes]) {
-                //todo: continue
+                for(int l = 0; l < amountOfParamsForInstruction[(int)opcodeRes]; l++) {
+                    switch(instructionPattern[opcodeRes][l]) {
+                        case REGISTER:
+                                params[l] = getRegisterIndex(instruction.params[lineIndex][l+1]);
+                            break;
+                        case OFFSET:
+                                //!!!!!!!!!!!! TODO ADD LABEL SUPPORT
+                                params[l] = (uint16_t)atoi(instruction.params[lineIndex][l+1]);
+                            break;
+                        case IMMIDIETE:
+                                params[l] = (int8_t)atoi(instruction.params[lineIndex][l+1]);
+                            break;
+                        case NONE:
+                            printf("ERROR!!!!!!!!!!!!!!\n");
+                            break;
+                    }
+                    machine_code[instructionIndex++] = assembleInstructions[(int)opcodeRes](params[0], params[1], params[2]);
+                }
             } else {
-                printf("Error in line:%d. %s Arguments for the instruction.\n", instruction.amountOfParams > amountOfParamsForInstruction[(int)opcodeRes] ? "Too little" : "Too many");
+                printf("Error in %s:%d. %s Arguments for the instruction.\n", input_file_name, lineIndex, instruction.amountOfParams > amountOfParamsForInstruction[(int)opcodeRes] ? "Too little" : "Too many");
                 for(int k = 0; k < instruction.amountOfParams; k++) {
                     free(instruction.params[k]);
                 }
@@ -122,9 +142,17 @@ int main(int argc, char** argv) {
             free(instruction.params);
             goto cleanup;
         }
-
-        lineIndex++;
     }
+    for(int k = 0; k < instruction.amountOfParams; k++) {
+        free(instruction.params[k]);
+    }
+    free(instruction.params);
+
+    FILE *output_file = fopen(output_file_name, "wb");
+
+    fwrite(machine_code, sizeof(uint16_t), lines - amountOfLabels, output_file);
+
+    fclose(output_file);
 
     // clean up
     cleanup:
