@@ -7,6 +7,16 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+
+bool isDigit(char c) {return (c >= '0' && c <= '9') ? true : false;}
+bool isNumber(char* string) {
+    if(string == NULL || *string == '\0') return false;
+    for(; *string != '\0'; string++) {
+        if(!isDigit(*string)) return false;
+    }
+    return true;
+}
+
 #define AMOUNT_OF_REGISTERS 8
 #define INTRUCTION_COUNT 32
 
@@ -90,8 +100,7 @@ const instructionToken_t instructionPattern[32][3] = {
     {NONE, NONE, NONE},
     {NONE, NONE, NONE},
     {NONE, NONE, NONE},
-    {NONE, NONE, NONE},
-    {NONE, NONE, NONE},
+    {NONE, NONE, NONE}
 };
 
 const int amountOfParamsForInstruction[32] = {
@@ -127,7 +136,6 @@ const int amountOfParamsForInstruction[32] = {
     0,
     0,
     0,
-    0,
 };
 
 typedef enum registerIndex {
@@ -138,41 +146,42 @@ typedef enum registerIndex {
     L = 4,
     PC = 5,
     SP = 6,
-    BP = 7
+    BP = 7,
+    NAR = -1
 } registerIndex_t;
 
-uint16_t addInstruction(registerIndex_t reg0, registerIndex_t reg1, uint16_t unused0) {return (ADD | (reg0 << REG0_SHIFT_BITS) | (reg1 << REG1_SHIFT_BITS));}
-uint16_t subInstruction(registerIndex_t reg0, registerIndex_t reg1, uint16_t unused0) {return (SUB | (reg0 << REG0_SHIFT_BITS) | (reg1 << REG1_SHIFT_BITS));}
-uint16_t adcInstruction(registerIndex_t reg0, registerIndex_t reg1, uint16_t unused0) {return (ADC | (reg0 << REG0_SHIFT_BITS) | (reg1 << REG1_SHIFT_BITS));}
-uint16_t sbcInstruction(registerIndex_t reg0, registerIndex_t reg1, uint16_t unused0) {return (SBC | (reg0 << REG0_SHIFT_BITS) | (reg1 << REG1_SHIFT_BITS));}
-uint16_t nandInstruction(registerIndex_t reg0, registerIndex_t reg1, uint16_t unused0) {return (NAND | (reg0 << REG0_SHIFT_BITS) | (reg1 << REG1_SHIFT_BITS));}
-uint16_t xorInstruction(registerIndex_t reg0, registerIndex_t reg1, uint16_t unused0) {return (XOR | (reg0 << REG0_SHIFT_BITS) | (reg1 << REG1_SHIFT_BITS));}
-uint16_t cmpInstruction(registerIndex_t reg0, registerIndex_t reg1, uint16_t unused0) {return (CMP | (reg0 << REG0_SHIFT_BITS) | (reg1 << REG1_SHIFT_BITS));}
-uint16_t shlInstruction(registerIndex_t reg0, uint16_t unused0, uint16_t unused1) {return (SHR | (reg0 << REG0_SHIFT_BITS));}
-uint16_t shrInstruction(registerIndex_t reg0, uint16_t unused0, uint16_t unused1) {return (SHL | (reg0 << REG0_SHIFT_BITS));}
-uint16_t incInstruction(registerIndex_t reg0, uint16_t unused0, uint16_t unused1) {return (INC | (reg0 << REG0_SHIFT_BITS));}
-uint16_t decInstruction(registerIndex_t reg0, uint16_t unused0, uint16_t unused1) {return (DEC | (reg0 << REG0_SHIFT_BITS));}
-uint16_t jmpInstruction(int16_t address, uint16_t unused0, uint16_t unused1) {return (JMP | (address & 0b0000011111111111));}
-uint16_t jzInstruction(int16_t address, uint16_t unused0, uint16_t unused1) {return (JZ | (address & 0b0000011111111111));}
-uint16_t jnInstruction(int16_t address, uint16_t unused0, uint16_t unused1) {return (JN | (address & 0b0000011111111111));}
-uint16_t jpInstruction(int16_t address, uint16_t unused0, uint16_t unused1) {return (JP | (address & 0b0000011111111111));}
-uint16_t ldirInstruction(registerIndex_t reg0, int8_t immidiete, uint16_t unused0) {return (LDIR | (reg0 << REG0_SHIFT_BITS) | (immidiete << REG1_SHIFT_BITS));}
-uint16_t ldrrInstruction(registerIndex_t reg0, registerIndex_t reg1, uint16_t unused0) {return (LDRR | (reg0 << REG0_SHIFT_BITS) | (reg1 << REG1_SHIFT_BITS));}
-uint16_t ldrmrInstruction(registerIndex_t reg0, registerIndex_t reg1, uint16_t unused0) {return (LDRR | (reg0 << REG0_SHIFT_BITS) | (reg1 << REG1_SHIFT_BITS));}
-uint16_t ldmrrInstruction(registerIndex_t reg0, registerIndex_t reg1, uint16_t unused0) {return (LDRR | (reg0 << REG0_SHIFT_BITS) | (reg1 << REG1_SHIFT_BITS));}
-uint16_t ldrmrrInstruction(registerIndex_t reg0, registerIndex_t reg1, registerIndex_t reg2) {return (LDRMRR | (reg0 << REG0_SHIFT_BITS) | (reg1 << REG1_SHIFT_BITS) | (reg2 << REG2_SHIFT_BITS));}
-uint16_t ldmrrrInstruction(registerIndex_t reg0, registerIndex_t reg1, registerIndex_t reg2) {return (LDMRRR | (reg0 << REG0_SHIFT_BITS) | (reg1 << REG1_SHIFT_BITS) | (reg2 << REG2_SHIFT_BITS));}
-uint16_t pushInstruction(registerIndex_t reg0, uint16_t unused0, uint16_t unused1) {return (PUSH | (reg0 << REG0_SHIFT_BITS));}
-uint16_t popInstruction(registerIndex_t reg0, uint16_t unused0, uint16_t unused1) {return (POP | (reg0 << REG0_SHIFT_BITS));}
-uint16_t u0Instruction(uint16_t unused0, uint16_t unused1, uint16_t unused2) {}
-uint16_t u1Instruction(uint16_t unused0, uint16_t unused1, uint16_t unused2) {}
-uint16_t u2Instruction(uint16_t unused0, uint16_t unused1, uint16_t unused2) {}
-uint16_t u3Instruction(uint16_t unused0, uint16_t unused1, uint16_t unused2) {}
-uint16_t u4Instruction(uint16_t unused0, uint16_t unused1, uint16_t unused2) {}
-uint16_t u5Instruction(uint16_t unused0, uint16_t unused1, uint16_t unused2) {}
-uint16_t u6Instruction(uint16_t unused0, uint16_t unused1, uint16_t unused2) {}
-uint16_t u7Instruction(uint16_t unused0, uint16_t unused1, uint16_t unused2) {}
-uint16_t u8Instruction(uint16_t unused0, uint16_t unused1, uint16_t unused2) {}
+uint16_t addInstruction(uint16_t reg0, uint16_t reg1, uint16_t unused0) {return (ADD | (reg0 << REG0_SHIFT_BITS) | (reg1 << REG1_SHIFT_BITS));}
+uint16_t subInstruction(uint16_t reg0, uint16_t reg1, uint16_t unused0) {return (SUB | (reg0 << REG0_SHIFT_BITS) | (reg1 << REG1_SHIFT_BITS));}
+uint16_t adcInstruction(uint16_t reg0, uint16_t reg1, uint16_t unused0) {return (ADC | (reg0 << REG0_SHIFT_BITS) | (reg1 << REG1_SHIFT_BITS));}
+uint16_t sbcInstruction(uint16_t reg0, uint16_t reg1, uint16_t unused0) {return (SBC | (reg0 << REG0_SHIFT_BITS) | (reg1 << REG1_SHIFT_BITS));}
+uint16_t nandInstruction(uint16_t reg0, uint16_t reg1, uint16_t unused0) {return (NAND | (reg0 << REG0_SHIFT_BITS) | (reg1 << REG1_SHIFT_BITS));}
+uint16_t xorInstruction(uint16_t reg0, uint16_t reg1, uint16_t unused0) {return (XOR | (reg0 << REG0_SHIFT_BITS) | (reg1 << REG1_SHIFT_BITS));}
+uint16_t cmpInstruction(uint16_t reg0, uint16_t reg1, uint16_t unused0) {return (CMP | (reg0 << REG0_SHIFT_BITS) | (reg1 << REG1_SHIFT_BITS));}
+uint16_t shlInstruction(uint16_t reg0, uint16_t unused0, uint16_t unused1) {return (SHR | (reg0 << REG0_SHIFT_BITS));}
+uint16_t shrInstruction(uint16_t reg0, uint16_t unused0, uint16_t unused1) {return (SHL | (reg0 << REG0_SHIFT_BITS));}
+uint16_t incInstruction(uint16_t reg0, uint16_t unused0, uint16_t unused1) {return (INC | (reg0 << REG0_SHIFT_BITS));}
+uint16_t decInstruction(uint16_t reg0, uint16_t unused0, uint16_t unused1) {return (DEC | (reg0 << REG0_SHIFT_BITS));}
+uint16_t jmpInstruction(uint16_t address, uint16_t unused0, uint16_t unused1) {return (JMP | (address & 0b0000011111111111));}
+uint16_t jzInstruction(uint16_t address, uint16_t unused0, uint16_t unused1) {return (JZ | (address & 0b0000011111111111));}
+uint16_t jnInstruction(uint16_t address, uint16_t unused0, uint16_t unused1) {return (JN | (address & 0b0000011111111111));}
+uint16_t jpInstruction(uint16_t address, uint16_t unused0, uint16_t unused1) {return (JP | (address & 0b0000011111111111));}
+uint16_t ldirInstruction(uint16_t reg0, uint16_t immidiete, uint16_t unused0) {return (LDIR | (reg0 << REG0_SHIFT_BITS) | ((immidiete && 0b11111111) << REG1_SHIFT_BITS));}
+uint16_t ldrrInstruction(uint16_t reg0, uint16_t reg1, uint16_t unused0) {return (LDRR | (reg0 << REG0_SHIFT_BITS) | (reg1 << REG1_SHIFT_BITS));}
+uint16_t ldrmrInstruction(uint16_t reg0, uint16_t reg1, uint16_t unused0) {return (LDRR | (reg0 << REG0_SHIFT_BITS) | (reg1 << REG1_SHIFT_BITS));}
+uint16_t ldmrrInstruction(uint16_t reg0, uint16_t reg1, uint16_t unused0) {return (LDRR | (reg0 << REG0_SHIFT_BITS) | (reg1 << REG1_SHIFT_BITS));}
+uint16_t ldrmrrInstruction(uint16_t reg0, uint16_t reg1, uint16_t reg2) {return (LDRMRR | (reg0 << REG0_SHIFT_BITS) | (reg1 << REG1_SHIFT_BITS) | (reg2 << REG2_SHIFT_BITS));}
+uint16_t ldmrrrInstruction(uint16_t reg0, uint16_t reg1, uint16_t reg2) {return (LDMRRR | (reg0 << REG0_SHIFT_BITS) | (reg1 << REG1_SHIFT_BITS) | (reg2 << REG2_SHIFT_BITS));}
+uint16_t pushInstruction(uint16_t reg0, uint16_t unused0, uint16_t unused1) {return (PUSH | (reg0 << REG0_SHIFT_BITS));}
+uint16_t popInstruction(uint16_t reg0, uint16_t unused0, uint16_t unused1) {return (POP | (reg0 << REG0_SHIFT_BITS));}
+uint16_t u0Instruction(uint16_t unused0, uint16_t unused1, uint16_t unused2) {return NOP;}
+uint16_t u1Instruction(uint16_t unused0, uint16_t unused1, uint16_t unused2) {return NOP;}
+uint16_t u2Instruction(uint16_t unused0, uint16_t unused1, uint16_t unused2) {return NOP;}
+uint16_t u3Instruction(uint16_t unused0, uint16_t unused1, uint16_t unused2) {return NOP;}
+uint16_t u4Instruction(uint16_t unused0, uint16_t unused1, uint16_t unused2) {return NOP;}
+uint16_t u5Instruction(uint16_t unused0, uint16_t unused1, uint16_t unused2) {return NOP;}
+uint16_t u6Instruction(uint16_t unused0, uint16_t unused1, uint16_t unused2) {return NOP;}
+uint16_t u7Instruction(uint16_t unused0, uint16_t unused1, uint16_t unused2) {return NOP;}
+uint16_t u8Instruction(uint16_t unused0, uint16_t unused1, uint16_t unused2) {return NOP;}
 uint16_t nopInstruction(uint16_t unused0, uint16_t unused1, uint16_t unused2) {return NOP;}
 
 const uint16_t (*assembleInstructions[])(uint16_t, uint16_t, uint16_t) = {
@@ -224,8 +233,9 @@ registerIndex_t getRegisterIndex(char* regName) {
         "BP"
     };
     for(int i = 0; i < AMOUNT_OF_REGISTERS; i++) {
-        if(strcmp(regName, registerNames[i]) == 0) return registerIndexes[i];
+        if(_stricmp(regName, registerNames[i]) == 0) return registerIndexes[i];
     }
+    return NAR;
 }
 
 OPCODE_t getOpcode(char* opcodeSting) {
@@ -253,14 +263,14 @@ OPCODE_t getOpcode(char* opcodeSting) {
         "LDMRRR",
         "PUSH",
         "POP",
-        "undefined",
-        "undefined",
-        "undefined",
-        "undefined",
-        "undefined",
-        "undefined",
-        "undefined",
-        "undefined",
+        "undefined0",
+        "undefined1",
+        "undefined2",
+        "undefined3",
+        "undefined4",
+        "undefined5",
+        "undefined6",
+        "undefined7",
         "NOP"
     };
 
@@ -279,6 +289,7 @@ OPCODE_t getOpcode(char* opcodeSting) {
         JMP,
         JZ,
         JN,
+        JP,
         LDIR,
         LDRR,
         LDRMR,
@@ -295,19 +306,18 @@ OPCODE_t getOpcode(char* opcodeSting) {
         UNDEFINED5,
         UNDEFINED6,
         UNDEFINED7,
-        UNDEFINED8,
         NOP
     };
 
     for(int i = 0; i < INTRUCTION_COUNT; i++) {
-        if(strcmp(opcodeSting, instructions[i]) == 0) return opcodes[i];
+        if(_stricmp(opcodeSting, instructions[i]) == 0) return opcodes[i] >> 11;
     }
     return NAI;
 } 
 
-typedef struct {
+typedef struct asmParamsResult{
     char** params;
-    int amountOfParams
+    int amountOfParams;
 } asmParamsResult_t;
 
 asmParamsResult_t getParametersFromAsembly(char* assembly) {
