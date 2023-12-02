@@ -8,7 +8,7 @@
 int main() {
     char *code = calloc(512, sizeof(char));
     //strncpy(code, "LdIr a, 255", 512);
-    strncpy(code, "ADD PC, B", 512);
+    strncpy(code, "PUSH PC", 512);
     
     asmParamsResult_t instruction = getParametersFromAsembly(code);
     
