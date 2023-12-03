@@ -40,24 +40,24 @@ typedef enum instruction_set {
     ADDI = 0b0110000000000000,          //instruction 12
     SUBI = 0b0110100000000000,          //instruction 13
     CMPI = 0b0111000000000000,          //instruction 14
-    UNUSED3 = 0b0111100000000000,          //instruction 15
-    JMP = 0b1000000000000000,          //instruction 16
-    JZ = 0b1000100000000000,          //instruction 17
-    JN = 0b1001000000000000,          //instruction 18
-    JP = 0b1001100000000000,          //instruction 19
-    LDIR = 0b1010000000000000,          //instruction 20
-    LDRR = 0b1010100000000000,          //instruction 21
-    LDRMR = 0b1011000000000000,          //instruction 22
-    LDMRR = 0b1011100000000000,          //instruction 23
-    LDRMRR = 0b1100000000000000,          //instruction 24
-    LDMRRR = 0b1100100000000000,          //instruction 25
-    PUSH = 0b1101000000000000,          //instruction 26
-    POP = 0b1101100000000000,          //instruction 27
-    SCF = 0b1110000000000000,          //instruction 28
-    RCF = 0b1110100000000000,          //instruction 29
-    CALL = 0b1111000000000000,          //instruction 30
+    JMP = 0b0111100000000000,          //instruction 15
+    JZ = 0b1000000000000000,          //instruction 16
+    JN = 0b1000100000000000,          //instruction 17
+    JP = 0b1001000000000000,          //instruction 18
+    LDIR = 0b1001100000000000,          //instruction 19
+    LDRR = 0b1010000000000000,          //instruction 20
+    LDRMR = 0b1010100000000000,          //instruction 21
+    LDMRR = 0b1011000000000000,          //instruction 22
+    LDRMRR = 0b1011100000000000,          //instruction 23
+    LDMRRR = 0b1100000000000000,          //instruction 24
+    PUSH = 0b1100100000000000,          //instruction 25
+    POP = 0b1101000000000000,          //instruction 26
+    SCF = 0b1101100000000000,          //instruction 27
+    RCF = 0b1110000000000000,          //instruction 28
+    CALL = 0b1110100000000000,          //instruction 29
+    RET = 0b1111000000000000,          //instruction 30
     NOP = 0b1111100000000000,          //instruction 31
-    NAI = 0b11111111111111111111111111111111 // not an instrution
+    NAI = -1 // not an instrution
 } OPCODE_t;
 
 
@@ -69,38 +69,38 @@ typedef enum instructionToken {
 } instructionToken_t;
 
 const instructionToken_t instructionPattern[32][3] = {
-    {REGISTER, REGISTER, NONE},
-    {REGISTER, REGISTER, NONE},
-    {REGISTER, REGISTER, NONE},
-    {REGISTER, REGISTER, NONE},
-    {REGISTER, REGISTER, NONE},
-    {REGISTER, REGISTER, NONE},
-    {REGISTER, REGISTER, NONE},
-    {REGISTER, NONE, NONE},
-    {REGISTER, NONE, NONE},
-    {REGISTER, NONE, NONE},
-    {REGISTER, NONE, NONE},
-    {OFFSET, NONE, NONE},
-    {OFFSET, NONE, NONE},
-    {OFFSET, NONE, NONE},
-    {REGISTER, IMMIDIETE, NONE},
-    {REGISTER, REGISTER, NONE},
-    {REGISTER, REGISTER, NONE},
-    {REGISTER, REGISTER, NONE},
-    {REGISTER, REGISTER, REGISTER},
-    {REGISTER, REGISTER, REGISTER},
-    {REGISTER, NONE, NONE},
-    {REGISTER, NONE, NONE},
-    {NONE, NONE, NONE},
-    {NONE, NONE, NONE},
-    {NONE, NONE, NONE},
-    {NONE, NONE, NONE},
-    {NONE, NONE, NONE},
-    {NONE, NONE, NONE},
-    {NONE, NONE, NONE},
-    {NONE, NONE, NONE},
-    {NONE, NONE, NONE},
-    {NONE, NONE, NONE}
+    {REGISTER, REGISTER, NONE},             //instruction 0
+    {REGISTER, REGISTER, NONE},             //instruction 1
+    {NONE, NONE, NONE},                     //instruction 2
+    {REGISTER, REGISTER, NONE},             //instruction 3
+    {REGISTER, REGISTER, NONE},             //instruction 4
+    {REGISTER, REGISTER, NONE},             //instruction 5
+    {REGISTER, REGISTER, NONE},             //instruction 6
+    {REGISTER, REGISTER, NONE},             //instruction 7
+    {NONE, NONE, NONE},                     //instruction 8
+    {REGISTER, NONE, NONE},                 //instruction 9
+    {NONE, NONE, NONE},                     //instruction 10
+    {NONE, NONE, NONE},                     //instruction 11
+    {REGISTER, IMMIDIETE, NONE},            //instruction 12
+    {REGISTER, IMMIDIETE, NONE},            //instruction 13
+    {REGISTER, IMMIDIETE, NONE},            //instruction 14
+    {OFFSET, NONE, NONE},                   //instruction 15
+    {OFFSET, NONE, NONE},                   //instruction 16
+    {OFFSET, NONE, NONE},                   //instruction 17
+    {OFFSET, NONE, NONE},                   //instruction 18
+    {REGISTER, IMMIDIETE, NONE},            //instruction 19
+    {REGISTER, REGISTER, NONE},             //instruction 20
+    {REGISTER, REGISTER, NONE},             //instruction 21
+    {REGISTER, REGISTER, NONE},             //instruction 22
+    {REGISTER, REGISTER, REGISTER},         //instruction 23
+    {REGISTER, REGISTER, REGISTER},         //instruction 24
+    {REGISTER, NONE, NONE},                 //instruction 25
+    {REGISTER, NONE, NONE},                 //instruction 26
+    {NONE, NONE, NONE},                     //instruction 27
+    {NONE, NONE, NONE},                     //instruction 28
+    {OFFSET, NONE, NONE},                   //instruction 29
+    {NONE, NONE, NONE},                     //instruction 30
+    {NONE, NONE, NONE}                      //instruction 31
 };
 
 const int amountOfParamsForInstruction[32] = {
@@ -138,6 +138,76 @@ const int amountOfParamsForInstruction[32] = {
     0,
 };
 
+const char asmInstructionStrings[32][16] = {
+    "ADD",
+    "SUB",
+    "",   // unused
+    "CMP",
+    "ADC",
+    "SBC",
+    "NAND",
+    "XOR",
+    "",   // unused
+    "SHR",
+    "",   // unused
+    "",   // unused
+    "ADDI",
+    "SUBI",
+    "CMPI",
+    "JMP",
+    "JZ",
+    "JN",
+    "JP",
+    "LDIR",
+    "LDRR",
+    "LDRMR",
+    "LDMRR",
+    "LDRMRR",
+    "LDMRRR",
+    "PUSH",
+    "POP",
+    "SCF",
+    "RCF",
+    "CALL",
+    "RET",
+    "NOP"
+};
+
+const OPCODE_t opcodes[] = {
+    ADD,
+    SUB,
+    UNUSED0,
+    CMP,
+    ADC,
+    SBC,
+    NAND,
+    XOR,
+    UNUSED1,
+    SHR,
+    LSH,
+    UNUSED2,
+    ADDI,
+    SUBI,
+    CMPI,
+    JMP,
+    JZ,
+    JN,
+    JP,
+    LDIR,
+    LDRR,
+    LDRMR,
+    LDMRR,
+    LDRMRR,
+    LDMRRR,
+    PUSH,
+    POP,
+    SCF,
+    RCF,
+    CALL,
+    RET,
+    NOP
+};
+
 typedef enum registerIndex {
     A = 0, 
     B = 1,
@@ -152,20 +222,24 @@ typedef enum registerIndex {
 
 uint16_t addInstruction(uint16_t reg0, uint16_t reg1, uint16_t unused0) {return (ADD | (reg0 << REG0_SHIFT_BITS) | (reg1 << REG1_SHIFT_BITS));}
 uint16_t subInstruction(uint16_t reg0, uint16_t reg1, uint16_t unused0) {return (SUB | (reg0 << REG0_SHIFT_BITS) | (reg1 << REG1_SHIFT_BITS));}
+uint16_t u0Instruction(uint16_t unused0, uint16_t unused1, uint16_t unused2) {return NOP;}
+uint16_t cmpInstruction(uint16_t reg0, uint16_t reg1, uint16_t unused0) {return (CMP | (reg0 << REG0_SHIFT_BITS) | (reg1 << REG1_SHIFT_BITS));}
 uint16_t adcInstruction(uint16_t reg0, uint16_t reg1, uint16_t unused0) {return (ADC | (reg0 << REG0_SHIFT_BITS) | (reg1 << REG1_SHIFT_BITS));}
 uint16_t sbcInstruction(uint16_t reg0, uint16_t reg1, uint16_t unused0) {return (SBC | (reg0 << REG0_SHIFT_BITS) | (reg1 << REG1_SHIFT_BITS));}
 uint16_t nandInstruction(uint16_t reg0, uint16_t reg1, uint16_t unused0) {return (NAND | (reg0 << REG0_SHIFT_BITS) | (reg1 << REG1_SHIFT_BITS));}
 uint16_t xorInstruction(uint16_t reg0, uint16_t reg1, uint16_t unused0) {return (XOR | (reg0 << REG0_SHIFT_BITS) | (reg1 << REG1_SHIFT_BITS));}
-uint16_t cmpInstruction(uint16_t reg0, uint16_t reg1, uint16_t unused0) {return (CMP | (reg0 << REG0_SHIFT_BITS) | (reg1 << REG1_SHIFT_BITS));}
-uint16_t shlInstruction(uint16_t reg0, uint16_t unused0, uint16_t unused1) {return (SHR | (reg0 << REG0_SHIFT_BITS));}
-uint16_t shrInstruction(uint16_t reg0, uint16_t unused0, uint16_t unused1) {return (SHL | (reg0 << REG0_SHIFT_BITS));}
-uint16_t incInstruction(uint16_t reg0, uint16_t unused0, uint16_t unused1) {return (INC | (reg0 << REG0_SHIFT_BITS));}
-uint16_t decInstruction(uint16_t reg0, uint16_t unused0, uint16_t unused1) {return (DEC | (reg0 << REG0_SHIFT_BITS));}
+uint16_t u1Instruction(uint16_t unused0, uint16_t unused1, uint16_t unused2) {return NOP;}
+uint16_t shrInstruction(uint16_t reg0, uint16_t unused0, uint16_t unused1) {return (SHR | (reg0 << REG0_SHIFT_BITS));}
+uint16_t u2Instruction(uint16_t unused0, uint16_t unused1, uint16_t unused2) {return NOP;}
+uint16_t u3Instruction(uint16_t unused0, uint16_t unused1, uint16_t unused2) {return NOP;}
+uint16_t addiInstruction(uint16_t reg0, uint16_t immidiete, uint16_t unused) {return ADDI | (reg0 << REG0_SHIFT_BITS) | (immidiete && 0b11111111);}
+uint16_t subiInstruction(uint16_t reg0, uint16_t immidiete, uint16_t unused) {return SUBI | (reg0 << REG0_SHIFT_BITS) | (immidiete && 0b11111111);}
+uint16_t cmpiInstruction(uint16_t reg0, uint16_t immidiete, uint16_t unused) {return CMPI | (reg0 << REG0_SHIFT_BITS) | (immidiete && 0b11111111);}
 uint16_t jmpInstruction(uint16_t address, uint16_t unused0, uint16_t unused1) {return (JMP | (address & 0b0000011111111111));}
 uint16_t jzInstruction(uint16_t address, uint16_t unused0, uint16_t unused1) {return (JZ | (address & 0b0000011111111111));}
 uint16_t jnInstruction(uint16_t address, uint16_t unused0, uint16_t unused1) {return (JN | (address & 0b0000011111111111));}
 uint16_t jpInstruction(uint16_t address, uint16_t unused0, uint16_t unused1) {return (JP | (address & 0b0000011111111111));}
-uint16_t ldirInstruction(uint16_t reg0, uint16_t immidiete, uint16_t unused0) {return (LDIR | (reg0 << REG0_SHIFT_BITS) | ((immidiete && 0b11111111) << REG1_SHIFT_BITS));}
+uint16_t ldirInstruction(uint16_t reg0, uint16_t immidiete, uint16_t unused0) {return (LDIR | (reg0 << REG0_SHIFT_BITS) | ((immidiete & 0b11111111) << REG1_SHIFT_BITS));}
 uint16_t ldrrInstruction(uint16_t reg0, uint16_t reg1, uint16_t unused0) {return (LDRR | (reg0 << REG0_SHIFT_BITS) | (reg1 << REG1_SHIFT_BITS));}
 uint16_t ldrmrInstruction(uint16_t reg0, uint16_t reg1, uint16_t unused0) {return (LDRR | (reg0 << REG0_SHIFT_BITS) | (reg1 << REG1_SHIFT_BITS));}
 uint16_t ldmrrInstruction(uint16_t reg0, uint16_t reg1, uint16_t unused0) {return (LDRR | (reg0 << REG0_SHIFT_BITS) | (reg1 << REG1_SHIFT_BITS));}
@@ -173,29 +247,28 @@ uint16_t ldrmrrInstruction(uint16_t reg0, uint16_t reg1, uint16_t reg2) {return 
 uint16_t ldmrrrInstruction(uint16_t reg0, uint16_t reg1, uint16_t reg2) {return (LDMRRR | (reg0 << REG0_SHIFT_BITS) | (reg1 << REG1_SHIFT_BITS) | (reg2 << REG2_SHIFT_BITS));}
 uint16_t pushInstruction(uint16_t reg0, uint16_t unused0, uint16_t unused1) {return (PUSH | (reg0 << REG0_SHIFT_BITS));}
 uint16_t popInstruction(uint16_t reg0, uint16_t unused0, uint16_t unused1) {return (POP | (reg0 << REG0_SHIFT_BITS));}
-uint16_t u0Instruction(uint16_t unused0, uint16_t unused1, uint16_t unused2) {return NOP;}
-uint16_t u1Instruction(uint16_t unused0, uint16_t unused1, uint16_t unused2) {return NOP;}
-uint16_t u2Instruction(uint16_t unused0, uint16_t unused1, uint16_t unused2) {return NOP;}
-uint16_t u3Instruction(uint16_t unused0, uint16_t unused1, uint16_t unused2) {return NOP;}
-uint16_t u4Instruction(uint16_t unused0, uint16_t unused1, uint16_t unused2) {return NOP;}
-uint16_t u5Instruction(uint16_t unused0, uint16_t unused1, uint16_t unused2) {return NOP;}
-uint16_t u6Instruction(uint16_t unused0, uint16_t unused1, uint16_t unused2) {return NOP;}
-uint16_t u7Instruction(uint16_t unused0, uint16_t unused1, uint16_t unused2) {return NOP;}
-uint16_t u8Instruction(uint16_t unused0, uint16_t unused1, uint16_t unused2) {return NOP;}
+uint16_t scfInstruction(uint16_t unused0, uint16_t unused1, uint16_t unused2) {return SCF;}
+uint16_t rcfInstruction(uint16_t unused0, uint16_t unused1, uint16_t unused2) {return RCF;}
+uint16_t callInstruction(uint16_t address, uint16_t unused0, uint16_t unused1) {return CALL | (address & 0b11111111111);}
+uint16_t retInstruction(uint16_t unused0, uint16_t unused1, uint16_t unused2) {return RET;}
 uint16_t nopInstruction(uint16_t unused0, uint16_t unused1, uint16_t unused2) {return NOP;}
 
 const uint16_t (*assembleInstructions[])(uint16_t, uint16_t, uint16_t) = {
     addInstruction,
     subInstruction,
+    u0Instruction,
+    cmpInstruction,
     adcInstruction,
     sbcInstruction,
     nandInstruction,
     xorInstruction,
-    cmpInstruction,
-    shlInstruction,
+    u1Instruction,
     shrInstruction,
-    incInstruction,
-    decInstruction,
+    u2Instruction,
+    u3Instruction,
+    addiInstruction,
+    subiInstruction,
+    cmpiInstruction,
     jmpInstruction,
     jzInstruction,
     jnInstruction,
@@ -208,17 +281,13 @@ const uint16_t (*assembleInstructions[])(uint16_t, uint16_t, uint16_t) = {
     ldmrrrInstruction,
     pushInstruction,
     popInstruction,
-    u0Instruction,
-    u1Instruction,
-    u2Instruction,
-    u3Instruction,
-    u4Instruction,
-    u5Instruction,
-    u6Instruction,
-    u7Instruction,
-    u8Instruction,
-    nopInstruction,
+    scfInstruction,
+    rcfInstruction,
+    callInstruction,
+    retInstruction,
+    nopInstruction
 };
+
 
 registerIndex_t getRegisterIndex(char* regName) {
     const registerIndex_t registerIndexes[] = {A, B, C, H, L, PC, SP, BP};
@@ -238,79 +307,9 @@ registerIndex_t getRegisterIndex(char* regName) {
     return NAR;
 }
 
-OPCODE_t getOpcode(char* opcodeSting) {
-    const char instructions[32][16] = {
-        "ADD",
-        "SUB",
-        "ADC",
-        "SBC",
-        "NAND",
-        "XOR",
-        "CMP",
-        "SHL",
-        "SHR",
-        "INC",
-        "DEC",
-        "JMP",
-        "JZ",
-        "JN",
-        "JP",
-        "LDIR",
-        "LDRR",
-        "LDRMR",
-        "LDMRR",
-        "LDRMRR",
-        "LDMRRR",
-        "PUSH",
-        "POP",
-        "undefined0",
-        "undefined1",
-        "undefined2",
-        "undefined3",
-        "undefined4",
-        "undefined5",
-        "undefined6",
-        "undefined7",
-        "NOP"
-    };
-
-    const OPCODE_t opcodes[] = {
-        ADD,
-        SUB,
-        ADC,
-        SBC,
-        NAND,
-        XOR,
-        CMP,
-        SHL,
-        SHR,
-        INC,
-        DEC,
-        JMP,
-        JZ,
-        JN,
-        JP,
-        LDIR,
-        LDRR,
-        LDRMR,
-        LDMRR,
-        LDRMRR,
-        LDMRRR,
-        PUSH,
-        POP,
-        JP,
-        UNDEFINED1,
-        UNDEFINED2,
-        UNDEFINED3,
-        UNDEFINED4,
-        UNDEFINED5,
-        UNDEFINED6,
-        UNDEFINED7,
-        NOP
-    };
-
+uint16_t getOpcode(char* opcodeSting) {
     for(int i = 0; i < INTRUCTION_COUNT; i++) {
-        if(_stricmp(opcodeSting, instructions[i]) == 0) return opcodes[i] >> 11;
+        if(_stricmp(opcodeSting, asmInstructionStrings[i]) == 0) return (int)opcodes[i] >> 11;
     }
     return NAI;
 } 
@@ -338,7 +337,7 @@ asmParamsResult_t getParametersFromAsembly(char* assembly) {
         }
     }
     res.amountOfParams++;
-    char** paramPointer = calloc(res.amountOfParams, sizeof(char*));
+    char** paramPointer = (char**)calloc(res.amountOfParams, sizeof(char*));
     
     newParamHasBegan = false;
 
@@ -348,7 +347,7 @@ asmParamsResult_t getParametersFromAsembly(char* assembly) {
         if((assembly[i] == ',' || assembly[i] == ' ') && newParamHasBegan == true) {
             newParamHasBegan = false;
             
-            paramPointer[paramIndex] = calloc(charsPerParam + 1, sizeof(char));
+            paramPointer[paramIndex] = (char*)calloc(charsPerParam + 1, sizeof(char));
             for(int j = 0; j < charsPerParam; j++) paramPointer[paramIndex][j] = assembly[i - (charsPerParam - j)];
             paramIndex++;
             charsPerParam = 0;
@@ -356,7 +355,7 @@ asmParamsResult_t getParametersFromAsembly(char* assembly) {
         if(newParamHasBegan == true) charsPerParam++;
     }
 
-    paramPointer[paramIndex] = calloc(charsPerParam + 1, sizeof(char));
+    paramPointer[paramIndex] = (char*)calloc(charsPerParam + 1, sizeof(char));
     for(int j = 0; j < charsPerParam; j++) paramPointer[paramIndex][j] = assembly[i - (charsPerParam - j)];
     newParamHasBegan = false;
 
