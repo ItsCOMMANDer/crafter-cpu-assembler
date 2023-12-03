@@ -25,39 +25,39 @@ bool isNumber(char* string) {
 #define REG2_SHIFT_BITS 2
 
 typedef enum instruction_set {
-    ADD = 0b00000000000000,
-    SUB = 0b0000100000000000,
-    ADC = 0b0001000000000000,
-    SBC = 0b0001100000000000,
-    NAND = 0b0010000000000000,
-    XOR = 0b0010100000000000,
-    CMP = 0b0011000000000000,
-    SHL = 0b0011100000000000,
-    SHR = 0b0100000000000000,
-    INC = 0b0100100000000000,
-    DEC = 0b0101000000000000,
-    JMP = 0b0101100000000000,
-    JZ = 0b0110000000000000,
-    JN = 0b0110100000000000,
-    JP = 0b0111000000000000,
-    LDIR = 0b0111100000000000,
-    LDRR = 0b1000000000000000,
-    LDRMR = 0b1000100000000000,
-    LDMRR = 0b1001000000000000,
-    LDRMRR = 0b1001100000000000,
-    LDMRRR = 0b1010000000000000,
-    PUSH = 0b1010100000000000,
-    POP = 0b1011000000000000,
-    UNDEFINED1 = 0b1011100000000000,
-    UNDEFINED2 = 0b1100000000000000,
-    UNDEFINED3 = 0b1100100000000000,
-    UNDEFINED4 = 0b1101000000000000,
-    UNDEFINED5 = 0b1101100000000000,
-    UNDEFINED6 = 0b1110000000000000,
-    UNDEFINED7 = 0b1110100000000000,
-    UNDEFINED8 = 0b1111000000000000,
-    NOP = 0b1111100000000000,
-    NAI = 0b11111111111111111111111111111111
+    ADD = 0b00000000000000,          //instruction 0
+    SUB = 0b0000100000000000,          //instruction 1
+    UNUSED0 = 0b0001000000000000,          //instruction 2
+    CMP = 0b0001100000000000,          //instruction 3
+    ADC = 0b0010000000000000,          //instruction 4
+    SBC = 0b0010100000000000,          //instruction 5
+    NAND = 0b0011000000000000,          //instruction 6
+    XOR = 0b0011100000000000,          //instruction 7
+    UNUSED1 = 0b0100000000000000,          //instruction 8
+    SHR = 0b0100100000000000,          //instruction 9
+    LSH = 0b0101000000000000,          //instruction 10
+    UNUSED2 = 0b0101100000000000,          //instruction 11
+    ADDI = 0b0110000000000000,          //instruction 12
+    SUBI = 0b0110100000000000,          //instruction 13
+    CMPI = 0b0111000000000000,          //instruction 14
+    UNUSED3 = 0b0111100000000000,          //instruction 15
+    JMP = 0b1000000000000000,          //instruction 16
+    JZ = 0b1000100000000000,          //instruction 17
+    JN = 0b1001000000000000,          //instruction 18
+    JP = 0b1001100000000000,          //instruction 19
+    LDIR = 0b1010000000000000,          //instruction 20
+    LDRR = 0b1010100000000000,          //instruction 21
+    LDRMR = 0b1011000000000000,          //instruction 22
+    LDMRR = 0b1011100000000000,          //instruction 23
+    LDRMRR = 0b1100000000000000,          //instruction 24
+    LDMRRR = 0b1100100000000000,          //instruction 25
+    PUSH = 0b1101000000000000,          //instruction 26
+    POP = 0b1101100000000000,          //instruction 27
+    SCF = 0b1110000000000000,          //instruction 28
+    RCF = 0b1110100000000000,          //instruction 29
+    CALL = 0b1111000000000000,          //instruction 30
+    NOP = 0b1111100000000000,          //instruction 31
+    NAI = 0b11111111111111111111111111111111 // not an instrution
 } OPCODE_t;
 
 

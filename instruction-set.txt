@@ -22,22 +22,21 @@ Op    | Name   | Usage                               | Description
 00111 | XOR    | XOR  <REG 1>, <REG 2>               | XORs <REG 1> with <REG 2>
 01000 | unused
 01001 | SHR    | SHR  <REG>                          | Right-Shifts <REG>
-01010 | unused
+01010 | SHL    | SHL <REG>                           | Left-Shifts <REG>
 01011 | unused
 01100 | ADDI   | ADD  <REG>, <Immediate>             | adds the immediate value to <REG>
 01101 | SUBI   | SUB  <REG>, <Immediate>             | subtracts the immediate value from <REG>
 01110 | CMPI   | CMP  <REG>, <Immediate>             | compares <REG> with the immediate value
-01111 | unused
-10000 | JMP    | JMP  <OFFSET>                       | jumps to relative adress <OFFSET>
-10001 | JZ     | JZ   <OFFSET>                       | jumps to relative adress <OFFSET> if zero flag is set
-10010 | JN     | JN   <OFFSET>                       | jumps to relative adress <OFFSET> if negative flag is set
-10011 | JP     | JP   <OFFSET>                       | jump if positive flag is set
-10011 | LDIR   | LD   <REG> <- <Immediate>           | loads value <Immediate> into <REG>
-10100 | LDRR   | LD   <REG 1> <- <REG 2>             | loads value from <REG 2> in to <REG 1>
-10101 | LDRMR  | LD   <REG 1> <- [<REG 2>]           | loads the value of the dereferenced bytepointer <REG 2> in to <REG 1>
-10110 | LDMRR  | LD   [<REG 1>] <- <REG 2>           | loads the value of <REG 2> into the bytepointer <REG 1>
-10111 | LDRMRR*| LD   <REG 1> <- [<REG 2> + <REG 3>] | loads the value of the dereferenced bytepointer wich is the xreult of the addition of <REG 2> and <REG 3> in to <REG 1>
-11000 | LDMRRR*| LD   [<REG 1> + <REG 2>] <- <REG 3> | loads the value of <REG 1> in to the bytepointer wich is the reult of the addition of <REG 2> and <REG 3> 
+01111 | JMP    | JMP  <OFFSET>                       | jumps to relative adress <OFFSET>
+10000 | JZ     | JZ   <OFFSET>                       | jumps to relative adress <OFFSET> if zero flag is set
+10001 | JN     | JN   <OFFSET>                       | jumps to relative adress <OFFSET> if negative flag is set
+10010 | JP     | JP   <OFFSET>                       | jump if positive flag is set
+10011 | LDIR   | LD   <REG>, <Immediate>             | loads value <Immediate> into <REG>
+10100 | LDRR   | LD   <REG 1>, <REG 2>               | loads value from <REG 2> in to <REG 1>
+10101 | LDRMR  | LD   <REG 1>, [<REG 2>]             | loads the value of the dereferenced bytepointer <REG 2> in to <REG 1>
+10110 | LDMRR  | LD   [<REG 1>], <REG 2>             | loads the value of <REG 2> into the bytepointer <REG 1>
+10111 | LDRMRR*| LD   <REG 1>, [<REG 2> + <REG 3>]   | loads the value of the dereferenced bytepointer wich is the xreult of the addition of <REG 2> and <REG 3> in to <REG 1>
+11000 | LDMRRR*| LD   [<REG 1> + <REG 2>], <REG 3>   | loads the value of <REG 1> in to the bytepointer wich is the reult of the addition of <REG 2> and <REG 3> 
 11001 | PUSH   | PUSH <REG>                          | Pushes value of <REG> on to the stack
 11010 | POP    | POP  <REG>                          | Pulls value of <REG> off the stack
 11011 | SCF    | SCF                                 | Sets the carry flag
