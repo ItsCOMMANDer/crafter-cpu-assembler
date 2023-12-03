@@ -25,7 +25,7 @@ int main() {
     for(int i = 0; i < instruction.amountOfParams-1; i++) {
         printf("Patterntype for argument %d (\"%s\") is %d \n", i, instruction.params[i+1], (int)instructionPattern[instruction_tok][i]);
         switch(instructionPattern[instruction_tok][i]) {
-            case REGISTER:
+            case INSTRUCTION_TOKEN_REGISTER:
                 if(getRegisterIndex(instruction.params[i+1]) != NAR) {
                     printf("Register at arg %d validated.\n", i);
                     args[i] = getRegisterIndex(instruction.params[i+1]);
@@ -33,7 +33,7 @@ int main() {
                 else {printf("Register at arg %d not validated, because register doesnt exists\n", i); return -1;}
                 break;
 
-            case IMMIDIETE:
+            case INSTRUCTION_TOKEN_IMMIDIETE:
                 if(isNumber(instruction.params[i+1])) {
                     if(atoi(instruction.params[i+1]) <= 0b11111111) {
                         printf("Immidiete at arg %d validated.\n", i);
@@ -42,7 +42,7 @@ int main() {
                 } else {printf("Immidiete at arg %d not validated, because arguments isnt a number.\n", i); return -1;}
                 break;
 
-            case OFFSET:
+            case INSTRUCTION_TOKEN_ADDRESS:
                 if(isNumber(instruction.params[i+1])) {
                     if(atoi(instruction.params[i+1]) <= 0b11111111111) {
                         printf("Offset at arg %d validated.", i);
