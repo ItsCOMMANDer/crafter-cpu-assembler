@@ -3,7 +3,8 @@
 ## Basic overview
 
 ### Registers
-Idx | Reg | Bits | Function
+Idx | Reg | Bits | Function |
+----|-----|------|----------|
 0   | A   | 8    | General purpose/accumulator
 1   | B   | 8    | General purpose
 2   | C   | 8    | General purpose
@@ -13,7 +14,6 @@ Idx | Reg | Bits | Function
 6   | SP  | 8    | Stack pointer
 7   | BP  | 8    | Base pointer
 
-([<REG>] means "value at memory address <REG>")
 
 ### Instruction set
 
@@ -65,6 +65,7 @@ Op    | Name   | Usage                               | Description              
 <N/A> | RET    | RET                                 | Alias for pop PC (Not implemented in hardware)
 11111 | NOP    | NOP                                 | does literally nothing
 
+(\[<REG>\] means "value at memory address <REG>")
 *don't actually build these but they're here in case
 
 #### Possible ways to reduce complexity
@@ -73,12 +74,12 @@ Op    | Name   | Usage                               | Description              
 
 ### Instruction Encoding
 
-5 bits for opcode
-then either:
-    3 bits for source register and 3 bits for destination
-or
-    11 bits for relative jump address
-or
+5 bits for opcode \\
+then either: \\
+    3 bits for source register and 3 bits for destination \\
+or \\ 
+    11 bits for relative jump address \\
+or \\
     3 bits for register, 3 bits unused and 8 bits for immediate value
 
 ```
