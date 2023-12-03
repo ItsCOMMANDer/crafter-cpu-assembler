@@ -34,13 +34,13 @@ int main(int argc, char** argv) {
         return -1;
     }
 
-    int i = 0;
+    int lineIndex = 0;
     fseek(source_file, 0, SEEK_SET);
     while ((readCharacter = fgetc(source_file)) != EOF) {
         if (readCharacter == '\n') {
-            i++;
+            lineIndex++;
         } else {
-            characterAmount[i]++;
+            characterAmount[lineIndex]++;
         }
     }
 
@@ -49,16 +49,23 @@ int main(int argc, char** argv) {
 
     if(code == NULL) {
         perror("Memory allocation for code array Failed ");
+        fclose(source_file);
         return 1;
     }
+
     int charIndex = 0;
     int readChar;
     fseek(source_file, 0, SEEK_SET);
-    for(i = 0; i < lines; i++) {
+    for(int i = 0; i < lines; i++) {
         code[i] = (char*)calloc(characterAmount[i] + 1, sizeof(char));
 
         if(code[i] == NULL) {
             perror("Memory allocation Failed ");
+            for(int k = 0; k < i; k++) {
+                free(code[k]);
+            }
+            free(code);
+            fclose(source_file);
             return 1;
         }
 
@@ -94,57 +101,22 @@ int main(int argc, char** argv) {
     }
 
     uint16_t *machine_code = calloc(lines - amountOfLabels, sizeof(uint16_t));
-    asmParamsResult_t instruction;
-    OPCODE_t opcodeRes;
-    int lineIndex = 0;
+    if(machine_code == NULL) goto cleanup;
     int instructionIndex = 0;
     
-    uint16_t params[3];
+    uint16_t args[3] = {0};
 
-    for(int lineIndex = 0; lineIndex < lines - amountOfLabels; lineIndex++) {
-        for(int j = 0; j < amountOfLabels; j++) {
-            if(lineIndex == labelLine[j]) continue;
-        }
-        instruction = getParametersFromAsembly(code[lineIndex]);
-        if(opcodeRes = getOpcode(instruction.params[0]) != NAI) {
-            if(instruction.amountOfParams == amountOfParamsForInstruction[(int)opcodeRes]) {
-                for(int l = 0; l < amountOfParamsForInstruction[(int)opcodeRes]; l++) {
-                    switch(instructionPattern[opcodeRes][l]) {
-                        case REGISTER:
-                                params[l] = getRegisterIndex(instruction.params[lineIndex][l+1]);
-                            break;
-                        case OFFSET:
-                                //!!!!!!!!!!!! TODO ADD LABEL SUPPORT
-                                params[l] = (uint16_t)atoi(instruction.params[lineIndex][l+1]);
-                            break;
-                        case IMMIDIETE:
-                                params[l] = (int8_t)atoi(instruction.params[lineIndex][l+1]);
-                            break;
-                        case NONE:
-                            printf("ERROR!!!!!!!!!!!!!!\n");
-                            break;
-                    }
-                    machine_code[instructionIndex++] = assembleInstructions[(int)opcodeRes](params[0], params[1], params[2]);
-                }
-            } else {
-                printf("Error in %s:%d. %s Arguments for the instruction.\n", input_file_name, lineIndex, instruction.amountOfParams > amountOfParamsForInstruction[(int)opcodeRes] ? "Too little" : "Too many");
-                for(int k = 0; k < instruction.amountOfParams; k++) {
-                    free(instruction.params[k]);
-                }
-                free(instruction.params);
-                goto cleanup;
-            }
-        } else {
-            printf("Error at line %d, instruction \"%s\" doesnt exist\n", instruction.params[0]);
-            for(int k = 0; k < instruction.amountOfParams; k++) {
-                free(instruction.params[k]);
-            }
-            free(instruction.params);
-            goto cleanup;
-        }
-    }
-    for(int k = 0; k < instruction.amountOfParams; k++) {
-        free(instruction.params[k]);
+    asmParamsResult_t instruction;
+
+    int currentLabelIndex = 0;
+
+    //for(i)
+    //TODO: continue
+
+
+
+    for(int i = 0; i < instruction.amountOfParams; i++) {
+        free(instruction.params[i]);
     }
     free(instruction.params);
 
@@ -162,7 +134,7 @@ int main(int argc, char** argv) {
     free(label);
     free(labelAddresses);
 
-    for (i = 0; i < lines; i++) {
+    for (int i = 0; i < lines; i++) {
         free(code[i]);
     }
 
