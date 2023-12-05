@@ -2,6 +2,10 @@
 #include <stdlib.h>
 
 int main(int argc, char** argv) {
+    if(argc < 3) {
+        printf("No files, so no");
+        return -1;
+    }
     FILE *source_file = fopen(argv[1], "r");
     if(source_file == NULL) {
         perror("Error opening file ");
@@ -60,15 +64,16 @@ int main(int argc, char** argv) {
         readChar = fgetc(source_file);
     }
     fclose(output_file);
-    output_file = fopen(argv[2], "r");
+    output_file = fopen(output_file_name, "r");
     int charAmount = 0;
     while((readChar = getc(output_file)) != EOF) charAmount++;
     charAmount+=numberOfCharsBeforeNewLine;
-    char* outputFileResize = calloc(charAmount, sizeof(char));
+    char* outputFileResize = (char*)calloc(charAmount, sizeof(char));
     if(outputFileResize == NULL) {
         perror("Memory allocation failed");
         fclose(output_file);
         fclose(source_file);
+        return -1;
     }
 
     fseek(output_file, 0, SEEK_SET);
@@ -78,7 +83,7 @@ int main(int argc, char** argv) {
     }
     fclose(output_file);
 
-    output_file = fopen(argv[2], "w");
+    output_file = fopen(output_file_name, "w");
     for(int i = 0; i < charAmount; i++) {
         fputc(outputFileResize[i], output_file);
     }
@@ -86,5 +91,4 @@ int main(int argc, char** argv) {
     free(outputFileResize);
     fclose(output_file);
     fclose(source_file);
-    return 0;
 }

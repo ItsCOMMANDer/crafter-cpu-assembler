@@ -6,8 +6,16 @@
 #include "include/assembleyInstructionConversion.h"
 
 int main(int argc, char** argv) {
-    char *input_file_name = "asmIN.s";
-    char *output_file_name = "asmOUT.s";
+    if(argc < 3) {
+        printf("Too little Arguments. Usage:\n\t%s \"<input file name>\" \"output file name>\"\n", argv[0]);
+        return -1;
+    }
+    char *input_file_name = malloc(strlen(argv[1]) + 1);
+    char *output_file_name = malloc(strlen(argv[2]) + 1);
+
+    strncpy(input_file_name, argv[1], strlen(argv[1]) + 1);
+    strncpy(output_file_name, argv[2], strlen(argv[2]) + 1);
+
 
     preprocess(input_file_name, output_file_name);
     // Open source file
@@ -88,6 +96,7 @@ int main(int argc, char** argv) {
     char** label = calloc(amountOfLabels, sizeof(char*));
     uint16_t* labelAddresses = calloc(amountOfLabels, sizeof(uint16_t));
     uint16_t* labelLine = calloc(amountOfLabels, sizeof(uint16_t));
+    bool labelsExist = false;
 
     int labelIndex = 0;
     for(int i = 0; i < amountOfLines; i++) {
@@ -97,6 +106,7 @@ int main(int argc, char** argv) {
                 label[labelIndex][j] = code[i][j];
                 label[labelIndex][strlen(code[i])] = 0;
                 labelLine[labelIndex] = i;
+                labelsExist = true;
             }
             labelAddresses[labelIndex] = i - labelIndex;
             labelIndex++;
@@ -114,9 +124,11 @@ int main(int argc, char** argv) {
 
     int currentLabelIndex = 0;
 
-    for(int lineIndex = 0; lineIndex < amountOfLines; lineIndex++) {
-        if(lineIndex == labelLine[currentLabelIndex]) {
+    for(lineIndex = 0; lineIndex < amountOfLines; lineIndex++) {
+        printf("At line %d\n", lineIndex);
+        if(!labelsExist && currentLabelIndex < amountOfLabels && lineIndex == labelLine[currentLabelIndex]) {
             currentLabelIndex++;
+            printf("gkjhgh");
             continue;
         }
 
@@ -169,7 +181,7 @@ int main(int argc, char** argv) {
         }
         free(instruction.params);
     }
-
+    printf("Done!!!");
 
 
     for(int i = 0; i < instruction.amountOfParams; i++) {
@@ -185,6 +197,9 @@ int main(int argc, char** argv) {
 
     // clean up
     cleanup:
+    free(input_file_name);
+    free(output_file_name);
+
     free(machine_code);
 
     for(int i = 0; i < amountOfLabels; i++) {
