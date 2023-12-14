@@ -1,6 +1,9 @@
-#include <stdio.h>
-#include <stdlib.h>
+#ifndef PREPROCESSOR_H
+#define PREPROCESSOR_H
+
 #include <stdbool.h>
+#include <stdlib.h>
+#include <stdio.h>
 
 int remove_comments(char* source_file_name, char* destenation_file_name) {
     FILE *source_file = fopen(source_file_name, "rb");
@@ -59,14 +62,4 @@ int remove_comments(char* source_file_name, char* destenation_file_name) {
 
     return 42;
 }
-
-int main(int argc, char** argv) {
-    if (argc < 3) {
-        printf("No files, so no");
-        return -1;
-    }
-
-    remove_comments(argv[1], argv[2]);
-
-    return 42;
-}
+#endif

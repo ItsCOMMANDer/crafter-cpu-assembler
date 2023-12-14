@@ -1,5 +1,5 @@
-#ifndef assemblyInstructionConversion_H
-#define assemblyInstructionConversion_H
+#ifndef ASSEMBLE_H
+#define ASSEMBLE_H
 
 #include <stdint.h>
 #include <string.h>
@@ -374,93 +374,4 @@ asmParamsResult_t getParametersFromAsembly(char* assembly) {
     res.params = paramPointer;
     return res;
 }
-
-int preprocess(char* source_file_name, char* output_file_name) {
-    FILE *source_file = fopen(source_file_name, "r");
-    if(source_file == NULL) {
-        perror("Error opening file ");
-        return -1;
-    }
-    FILE *output_file = fopen(output_file_name, "w");
-    if(output_file == NULL) {
-        perror("Error opening output file ");
-        fclose(source_file);
-        return -1;
-    }
-    bool singleLineComment = 0;
-    bool multilineComment = 0;
-    bool charAfterNewLine = 0;
-    int numberOfCharsBeforeNewLine = 0;
-    int readChar;
-
-    readChar = fgetc(source_file);
-    while(readChar != EOF) {
-        if((char)readChar == '/') {
-            if(fgetc(source_file) == '/') {
-                singleLineComment = 1;
-                fseek(source_file, -1, SEEK_CUR);
-            } else fseek(source_file, -1, SEEK_CUR);
-
-            if(fgetc(source_file) == '*') {
-                multilineComment = 1;
-                fseek(source_file, -1, SEEK_CUR);
-            } else fseek(source_file, -1, SEEK_CUR);
-        }
-
-        if((char)readChar != ' ' && (char)readChar != '\t' && (char)readChar != '\n' && singleLineComment == 0 && multilineComment == 0) {
-            charAfterNewLine = 1;
-            numberOfCharsBeforeNewLine = 0;
-        } else if(((char)readChar == ' ' || (char)readChar == '\t') && singleLineComment == 0 && multilineComment == 0) {
-            numberOfCharsBeforeNewLine--;
-        }
-
-        if((char)readChar == '\n' && singleLineComment == 0 && multilineComment == 0) {
-            fseek(output_file, numberOfCharsBeforeNewLine, SEEK_CUR);
-            numberOfCharsBeforeNewLine = 0;
-            singleLineComment = 0;
-        }
-
-        if(singleLineComment == 0 && multilineComment == 0 && charAfterNewLine == 1) {
-            fputc((char)readChar, output_file);
-            if((char)readChar == '\n') charAfterNewLine = 0;
-        }
-
-        if(readChar == '*') {
-            if(fgetc(source_file) == '/') {
-                multilineComment = 0;
-                fseek(source_file, 1, SEEK_CUR);
-            } else fseek(source_file, -1, SEEK_CUR);
-        }
-        readChar = fgetc(source_file);
-    }
-    fclose(output_file);
-    output_file = fopen(output_file_name, "r");
-    int charAmount = 0;
-    while((readChar = getc(output_file)) != EOF) charAmount++;
-    charAmount+=numberOfCharsBeforeNewLine;
-    char* outputFileResize = (char*)calloc(charAmount, sizeof(char));
-    if(outputFileResize == NULL) {
-        perror("Memory allocation failed");
-        fclose(output_file);
-        fclose(source_file);
-        return -1;
-    }
-
-    fseek(output_file, 0, SEEK_SET);
-
-    for(int i = 0; i < charAmount; i++) {
-        outputFileResize[i] = getc(output_file);
-    }
-    fclose(output_file);
-
-    output_file = fopen(output_file_name, "w");
-    for(int i = 0; i < charAmount; i++) {
-        fputc(outputFileResize[i], output_file);
-    }
-
-    free(outputFileResize);
-    fclose(output_file);
-    fclose(source_file);
-}
-
 #endif
