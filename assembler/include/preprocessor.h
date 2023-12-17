@@ -5,18 +5,57 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-int remove_comments(char* source_file_name, char* destenation_file_name) {
+void remove_trailing_whitespaces(char* source_file_name, char* destenation_file_name) {
     FILE *source_file = fopen(source_file_name, "rb");
     if (source_file == NULL) {
         perror("Error opening file ");
-        return -1;
+        return;
     }
 
     FILE *output_file = fopen(destenation_file_name, "wb");
     if (output_file == NULL) {
         perror("Error opening output file ");
         fclose(source_file);
-        return -1;
+        return;
+    }
+
+    int readChar = 0;
+    bool charReached = false;
+    int jumpBack = 0;
+    int jumpBackFromBeginning = 0;
+    
+
+    while((readChar = fgetc(source_file)) != EOF) {
+        if((char)readChar != ' ' && (char)readChar != '\t') {jumpBack = 0;}
+        else jumpBack--;
+        
+        if((char)readChar == '\n') {
+            fseek(output_file, jumpBack, SEEK_CUR);
+            charReached = false;
+        }
+
+        if(!charReached && (char)readChar != ' ' && (char)readChar != '\t') {
+            charReached = true;
+        }
+        if(charReached) fputc(readChar, output_file);
+    }
+
+    fclose(output_file);
+    fclose(source_file);
+}
+
+void remove_comments(char* source_file_name, char* destenation_file_name) {
+    FILE *source_file = fopen(source_file_name, "rb");
+    if (source_file == NULL) {
+        perror("Error opening file ");
+        return;
+    }
+
+    FILE *output_file = fopen(destenation_file_name, "wb");
+    if (output_file == NULL) {
+        perror("Error opening output file ");
+        fclose(source_file);
+        return;
     }
 
     int readChar = 0;
@@ -59,7 +98,6 @@ int remove_comments(char* source_file_name, char* destenation_file_name) {
 
     fclose(output_file);
     fclose(source_file);
-
-    return 42;
 }
+
 #endif
