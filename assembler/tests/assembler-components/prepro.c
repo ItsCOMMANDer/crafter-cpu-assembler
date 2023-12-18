@@ -9,7 +9,7 @@ int main(int argc, char** argv) {
         return -1;
     }
     //remove_comments(argv[1], argv[2]);
-    remove_trailing_whitespaces(argv[1], argv[2]);
+    remove_leading_whitespaces(argv[1], argv[2]);
 
     return 42;
 }

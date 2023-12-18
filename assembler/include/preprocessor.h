@@ -5,43 +5,46 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-void remove_trailing_whitespaces(char* source_file_name, char* destenation_file_name) {
-    FILE *source_file = fopen(source_file_name, "rb");
-    if (source_file == NULL) {
+void remove_leading_whitespaces(char* source_file_name, char* destenation_file_name) {
+    FILE *sourceFile = fopen(source_file_name, "rb");
+    if (sourceFile == NULL) {
         perror("Error opening file ");
         return;
     }
 
-    FILE *output_file = fopen(destenation_file_name, "wb");
-    if (output_file == NULL) {
+    FILE *outputFile = fopen(destenation_file_name, "wb");
+    if (outputFile == NULL) {
         perror("Error opening output file ");
-        fclose(source_file);
+        fclose(sourceFile);
         return;
     }
 
     int readChar = 0;
+    int jmpBack = 0;
     bool charReached = false;
-    int jumpBack = 0;
-    int jumpBackFromBeginning = 0;
+
+    while ((readChar = fgetc(sourceFile)) != EOF) {
+        if((char)readChar == ' ' || (char)readChar == '\t') {
+            jmpBack--;
+        }
+        if ((char)readChar != ' ' && (char)readChar != '\t') {
+            charReached = 1;
+            if((char)readChar != '\n') {jmpBack = 0;}
+        }
+        if ((char)readChar == '\n') {
+            charReached = 0;
+            fseek(outputFile, jmpBack, SEEK_CUR);
+            printf("%djmp\n", jmpBack);
+            fputc('\n', outputFile);
+        }
+        if (charReached == 1) {
+            fputc(readChar, outputFile);
+        }
+    }
     
 
-    while((readChar = fgetc(source_file)) != EOF) {
-        if((char)readChar != ' ' && (char)readChar != '\t') {jumpBack = 0;}
-        else jumpBack--;
-        
-        if((char)readChar == '\n') {
-            fseek(output_file, jumpBack, SEEK_CUR);
-            charReached = false;
-        }
-
-        if(!charReached && (char)readChar != ' ' && (char)readChar != '\t') {
-            charReached = true;
-        }
-        if(charReached) fputc(readChar, output_file);
-    }
-
-    fclose(output_file);
-    fclose(source_file);
+    fclose(outputFile);
+    fclose(sourceFile);
 }
 
 void remove_comments(char* source_file_name, char* destenation_file_name) {
@@ -51,8 +54,8 @@ void remove_comments(char* source_file_name, char* destenation_file_name) {
         return;
     }
 
-    FILE *output_file = fopen(destenation_file_name, "wb");
-    if (output_file == NULL) {
+    FILE *outputFile = fopen(destenation_file_name, "wb");
+    if (outputFile == NULL) {
         perror("Error opening output file ");
         fclose(source_file);
         return;
@@ -93,10 +96,10 @@ void remove_comments(char* source_file_name, char* destenation_file_name) {
                 break;
         }
         
-        if(!multiLineComment && !singleLineComment) fputc(readChar, output_file);
+        if(!multiLineComment && !singleLineComment) fputc(readChar, outputFile);
     }
 
-    fclose(output_file);
+    fclose(outputFile);
     fclose(source_file);
 }
 
