@@ -5,7 +5,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-void remove_leading_whitespaces(char* source_file_name, char* destenation_file_name) {
+void remove_leading_and_trailing_spaces(char* source_file_name, char* destenation_file_name) {
+    // checks for correct parameters and if file opening was successful
     FILE *sourceFile = fopen(source_file_name, "rb");
     if (sourceFile == NULL) {
         perror("Error opening file ");
@@ -18,27 +19,27 @@ void remove_leading_whitespaces(char* source_file_name, char* destenation_file_n
         fclose(sourceFile);
         return;
     }
-
-    int readChar = 0;
-    int jmpBack = 0;
-    bool charReached = false;
+    // declare variabels
+    int readChar = 0; // character read by fgetc
+    int jmpBack = 0;  // amount of characters to jump back (in the outputfile) at the end of a lien
+    bool charReached = false; // 1 if a non tab/space character has been encounterd in a new line/amount of chars since a non space/tab char
 
     while ((readChar = fgetc(sourceFile)) != EOF) {
         if((char)readChar == ' ' || (char)readChar == '\t') {
-            jmpBack--;
+            jmpBack--; //a space/tab has been encounterd, decrement
         }
         if ((char)readChar != ' ' && (char)readChar != '\t') {
-            charReached = 1;
-            if((char)readChar != '\n') {jmpBack = 0;}
+            charReached = 1; // a non tab/space char has been encounterd
+            if((char)readChar != '\n') {jmpBack = 0;} // resets jumpback
         }
         if ((char)readChar == '\n') {
-            charReached = 0;
-            fseek(outputFile, jmpBack, SEEK_CUR);
-            printf("%djmp\n", jmpBack);
-            fputc('\n', outputFile);
+            charReached = 0;                    // reset if a non sp ace/tab char has been encounterd because its a new lien
+            fseek(outputFile, jmpBack, SEEK_CUR); // jumo back in the output file
+            printf("%djmp\n", jmpBack); // debug
+            fputc('\n', outputFile); // put an newline in outputfile
         }
         if (charReached == 1) {
-            fputc(readChar, outputFile);
+            fputc(readChar, outputFile);  // if character has been encounterd, add read char to outputfile
         }
     }
     
