@@ -55,22 +55,21 @@ Op    | Name   | Usage                               | Description              
 10101 | LDRR   | LD   (REG 1), (REG 2)               | Loads (REG 2) in to (REG 1)
 10110 | LDRMR  | LD   (REG 1), [(REG 2)]             | Loads the value of memory at location (REG 2) in to (REG 1)
 10111 | LDMRR  | LD   [(REG 1)], (REG 2)             | Loads the value of (REG 2) into the bytepointer (REG 1)
-11000 | LDRMRR*| LD   (REG 1), [(REG 2) + (REG 3)]   | Loads the value of memory at the sum of (REG 2) and (REG 3) in to (REG 1)
-11001 | LDMRRR*| LD   [(REG 1) + (REG 2)], (REG 3)   | Loads the value of (REG 1) into memory at the sum of (REG 2) and (REG 3) 
+11000 | Unused
+11001 | Unused
 11010 | PUSH   | PUSH (REG)                          | Pushes (REG) on to the stack
-11011 | POP    | POP  (REG)                          | Pops (REG) off the stack
-11100 | SCF    | SCF                                 | Sets the carry flag
-11101 | RCF    | RCF                                 | Resets the carry flag
+11011 | POP    | POP  (REG)                          | Pops a value off the stack and loads it into (REG)
+11100 | SCF*   | SCF                                 | Sets the carry flag
+11101 | RCF*   | RCF                                 | Resets the carry flag
 11110 | CALL   | CALL (Address)                      | Push PC, jump to (Address)
-(N/A) | RET    | RET                                 | Alias for pop PC (Not implemented in hardware)
 11111 | NOP    | NOP                                 | does literally nothing
 
 ([(REG)] means "value at memory address (REG)")
-*don't actually build these but they're here in case
+
+*Not entirely required, can be overwritten if necessary
 
 #### Possible ways to reduce complexity
 - hard wire register A to some functions, e.g. first or second operand of ALU instructions, or destination of ALU instructions
-- get rid of the more complex addressing modes (LDRMRR, LDMRRR)
 
 ### Instruction Encoding
 
@@ -79,8 +78,8 @@ Op    | Name   | Usage                               | Description              
 -    11 bits for relative jump address    
 -    3 bits for register, 3 bits unused and 8 bits for immediate value
 ```
-00000 xxx xxx xxxxx -) NOP
-00001 001 010 xxxxx -) ADD A, B
+00000 xxx xxx xxxxx -> NOP
+00001 001 010 xxxxx -> ADD A, B
   |    |   |  
   |    |   \-- Reg B
   |    \------ Reg A
@@ -88,14 +87,14 @@ Op    | Name   | Usage                               | Description              
 ```
 
 ```
-01001 111 11111001
+01001 000 00000111
   |    |   |
-  |    \---\-- -7 words, two's compliment
+  |    \---\-- Location 7 to jump to
   \----------- JZ opcode
 ```
 
 ```
-01010 001 xxx 01010101 -) LD b, 85
+01010 001 xxx 01010101 -> LD b, 85
   |    |       |      
   |    |       |
   |    |       \------- numeber 85
