@@ -41,7 +41,7 @@ Op    | Name   | Usage                               | Description              
 00111 | XOR    | XOR  (REG 1), (REG 2)               | XORs (REG 1) with (REG 2)
 01000 | ADDI   | ADD  (REG), (Immediate)             | Adds (Immediate) to (REG)
 01001 | SUBI   | SUB  (REG), (Immediate)             | Subtracts (Immediate) from (REG)
-01010 | unused (SHRI doesn't make sense)  |          | (In hardware, this instruction will just execute a SHR (REG) 
+01010 | Unused |                                     | (In hardware, this instruction will just execute a SHR (REG)
 01011 | CMPI   | CMP   (REG), (Immediate)            | Subtracts (Immediate) from (REG 1), sets flags, and discards the result
 01100 | ADCI   | ADCI  (REG), (Immediate)            | Adds (Immediate) plus the carry flag to (REG) 
 01101 | SBCI   | SBCI  (REG), (Immediate)            | Subtracts (Immediate) plus the carry flat from (REG)
