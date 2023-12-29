@@ -3,7 +3,8 @@
 #include <stdbool.h>
 #include <string.h>
 #include <stdint.h>
-#include "include/assembleyInstructionConversion.h"
+#include "include/assemble.h"
+#include "include/preprocessor.h"
 
 int main(int argc, char** argv) {
     if(argc < 3) {
@@ -16,8 +17,17 @@ int main(int argc, char** argv) {
     strncpy(input_file_name, argv[1], strlen(argv[1]) + 1);
     strncpy(output_file_name, argv[2], strlen(argv[2]) + 1);
 
+    char* tmpName;
+    strcpy(tmpName, input_file_name);
 
-    preprocess(input_file_name, output_file_name);
+    strncat(tmpName, ".tmpAMSsourceCodeStuffLUL", 25);
+    preprocess(input_file_name, tmpName);
+    preprocess(tmpName, output_file_name);
+
+    FILE* tmpfp = fopen(tmpName, "rw");
+    remove(tmpfp);
+    fclose(tmpfp);
+
     // Open source file
     FILE* source_file = fopen(output_file_name, "r");
     if(source_file == NULL) {
@@ -134,9 +144,9 @@ int main(int argc, char** argv) {
 
         instruction = getParametersFromAsembly(code[lineIndex]);
         instruction_tok = getOpcode(instruction.params[0]);
-        printf("Instruction token = %d\ninstruction: %s\n", instruction_tok, instruction.params[0]);
+        printf("Instruction token = %d\ninstruction: %s\nNAI = %d\n", (uint16_t)instruction_tok, instruction.params[0], (uint16_t)NAI);
 
-        if(instruction_tok == NAI) {
+        if((uint16_t)instruction_tok == (uint16_t)NAI) {
             printf("Instruction \"%s\" doesnt exist.\n", instruction.params[0]);
             goto cleanup;
             return -1;

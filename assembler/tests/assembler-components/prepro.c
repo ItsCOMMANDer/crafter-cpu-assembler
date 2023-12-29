@@ -8,8 +8,6 @@ int main(int argc, char** argv) {
         printf("No files, so no");
         return -1;
     }
-    //remove_comments(argv[1], argv[2]);
-    remove_leading_and_trailing_spaces(argv[1], argv[2]);
-
+    preprocess(argv[1], argv[2]);
     return 42;
 }

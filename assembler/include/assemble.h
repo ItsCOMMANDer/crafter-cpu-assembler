@@ -319,7 +319,10 @@ registerIndex_t getRegisterIndex(char* regName) {
 
 uint16_t getOpcode(char* opcodeSting) {
     for(int i = 0; i < INSTRUCTION_COUNT; i++) {
-        if(_stricmp(opcodeSting, asmInstructionStrings[i]) == 0) return (int)opcodes[i] >> 11;
+        if(_stricmp(opcodeSting, asmInstructionStrings[i]) == 0) {
+            printf("returning %d with opcide %s\n", (int)opcodes[i] >> 11 asmInstructionStrings[i]);
+            return (int)opcodes[i] >> 11;
+        }
     }
     return NAI;
 } 
