@@ -5,6 +5,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include <math.h>
+
 enum instruction_token {
     INSTRUCTIONTOKEN_IMMIDIATE = 0,
     INSTRUCTIONTOKEN_REGISTER = 1,
@@ -98,10 +100,12 @@ struct instruction_info getInstructionInfo(uint8_t index) {
     if(isDigit(instructions[index][0])) asmLength = instructions[index][0] - '0';
     else {
         ret.valid = false;
+        ret.instruction_name = calloc(1, sizeof(char));
         return ret;
     }
     if(asmLength <= 0) {
         ret.valid = false;
+        ret.instruction_name = calloc(1, sizeof(char));
         return ret;
     }
     char* asmString = "";
@@ -140,27 +144,62 @@ struct instruction_info getInstructionInfo(uint8_t index) {
     return ret;
 }
 
-int test(void);
-
-int main() {
-    struct instruction_info info = getInstructionInfo(16);
-    printf("Instruction Name: \"%s\"\nOpcode: %d\nAmount of Parameters: %d\n", info.instruction_name, info.opcode, info.amountOfParams);
-    for(int i = 0; i < info.amountOfParams; i++) {
-        char* p = "";
-        printf("Param %d: %s\n", i, getParamType(p, info.params[i]));
+uint16_t getOpCode(char* insturction_name) {
+    for(int i = 0; i < 32; i++) {
+        struct instruction_info info = getInstructionInfo(i);
+        if(_stricmp(insturction_name, info.instruction_name) == 0) {
+            free(info.instruction_name);
+            return info.opcode;
+        }
+        free(info.instruction_name);
     }
-    free(info.instruction_name);
+    return -1;
+}
+
+int main(int argc, char** argv) {
+    if(argc <= 1) return -1;
+    FILE* source_file = fopen(argv[1], "rb");
+    if(source_file == NULL) {
+        printf("Error opening file.\n");
+        return -1;
+    }
+
+    fseek(source_file, 0, SEEK_END);
+    long long fileLength = ftell(source_file);
+    if (fileLength == 0) {
+        printf("File is empty.\n");
+        fclose(source_file);
+        return -1;
+    }
+
+    char *buffer = calloc(fileLength + 1, sizeof(char));
+    fseek(source_file, 0, SEEK_SET);
+    fread(buffer, sizeof(char), fileLength, source_file);
+    fclose(source_file);
+
+    uint64_t lineCount = 1;
+    int maxCharCount = 0;
+    int charCount = 0;
+
+    for(uint64_t i = 0; i < fileLength + 1; i++) {
+        if(buffer[i] == '\n' || buffer[i] == '\0') {
+            if(buffer[i] != '\0') lineCount++;
+            maxCharCount = max(maxCharCount,charCount);
+            charCount = 0;
+        } else {
+            charCount++;
+        }
+    }
+
+    printf("\nLine Count: %llu\nLongest Line: %d\n", lineCount, maxCharCount);
+
+    free(buffer);
     return 42;
 }
 
 
 
-
-
-
-
-
-
+/*
 int test(void) {
     for(int i = 0; i < 32; i++) {
         int asmLength;
@@ -209,3 +248,4 @@ int test(void) {
         printf("\n");
     }
 }
+*/
