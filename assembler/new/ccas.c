@@ -35,38 +35,38 @@ bool isNumber(char* c) {
 
 
 const char instructions[32][32] = {
-    "13ADD2RR",
-    "13SUB2RR",
-    "13SHR1R",
-    "13CMP2RR",
-    "13ADC2RR",
-    "13SBC2RR",
-    "14NAND2RR",
-    "13XOR2RR",
-    "14ADDI2RI",
-    "14SUBI2RI",
-    "0Unused0",
-    "14CMPI2RI",
-    "14ADCI2RI",
-    "14SBCI2RI",
-    "15NANDI2IR",
-    "14XORI2IR",
-    "13JMP1A",
-    "12JZ1A",
-    "12JN1A",
-    "12JP1A",
-    "14LDIR2RI",
-    "14LDRR2RR",
-    "15LDRMR2RP",
-    "15LDMRR2PR",
-    "0Unused0",
-    "0Unused0",
-    "14PUSH1R",
-    "13POP1R",
-    "13SCF0",
-    "13RCF0",
-    "14CALL1A",
-    "13NOP0",
+    "03ADD2RR",
+    "03SUB2RR",
+    "03SHR1R",
+    "03CMP2RR",
+    "03ADC2RR",
+    "03SBC2RR",
+    "04NAND2RR",
+    "03XOR2RR",
+    "04ADDI2RI",
+    "04SUBI2RI",
+    "00Unused0",
+    "04CMPI2RI",
+    "04ADCI2RI",
+    "04SBCI2RI",
+    "05NANDI2IR",
+    "04XORI2IR",
+    "03JMP1A",
+    "02JZ1A",
+    "02JN1A",
+    "02JP1A",
+    "04LDIR2RI",
+    "04LDRR2RR",
+    "05LDRMR2RP",
+    "05LDMRR2PR",
+    "00Unused0",
+    "00Unused0",
+    "04PUSH1R",
+    "03POP1R",
+    "03SCF0",
+    "03RCF0",
+    "04CALL1A",
+    "03NOP0",
 };
 
 char* getParamType( char* dest, enum instruction_token token) {
@@ -96,17 +96,18 @@ struct instruction_info getInstructionInfo(uint8_t index) {
     ret.valid = true;
     ret.opcode = index;
     int asmLength;
-    int skip = 1;
-    if(isDigit(instructions[index][0])) asmLength = instructions[index][0] - '0';
+    int skip = 2;
+    if(isDigit(instructions[index][0]) && isDigit(instructions[index][1])) {
+        char tmpChr[3] = { instructions[index][0], instructions[index][1], '\0'};
+        asmLength = atoi(tmpChr);
+    }
     else {
         ret.valid = false;
-        ret.instruction_name = calloc(1, sizeof(char));
-        return ret;
+        return ret;        
     }
     if(asmLength <= 0) {
         ret.valid = false;
-        ret.instruction_name = calloc(1, sizeof(char));
-        return ret;
+        return ret;        
     }
     char* asmString = "";
     strncpy(asmString, instructions[index] + skip, asmLength);
@@ -156,6 +157,8 @@ uint16_t getOpCode(char* insturction_name) {
     return -1;
 }
 
+void printInstructionData(void);
+
 int main(int argc, char** argv) {
     if(argc <= 1) return -1;
     FILE* source_file = fopen(argv[1], "rb");
@@ -192,60 +195,55 @@ int main(int argc, char** argv) {
     }
 
     printf("\nLine Count: %llu\nLongest Line: %d\n", lineCount, maxCharCount);
+    
+    char** code = calloc(lineCount, sizeof(char*));
+    
+    int index = 0;
+    int offset = 0;
 
-    free(buffer);
+    for (int i = 0; i < lineCount; i++) {
+        code[i] = calloc(maxCharCount + 1, sizeof(char));
+        sscanf(buffer + offset, "%[^\n]%n", code[i], &index); //idk how the "%[^\n]%n" tbh
+        offset += index + 1;
+    }
+
+    //CONTINUE
+
+    for(int i = 0; i < lineCount; i++) {
+        free(code[i]);
+    }
+    free(code);
+    
     return 42;
 }
 
 
-
-/*
-int test(void) {
+void printInstructionData(void) {
     for(int i = 0; i < 32; i++) {
-        int asmLength;
-        int skip = 1;
-        if(isDigit(instructions[i][0])) asmLength = instructions[i][0] - '0';
-        else {
-            printf("Format Error.\n");
-            return -1;
-        }
-        if(asmLength <= 0) {
-            printf("Unused\n");
+        struct instruction_info ins = getInstructionInfo(i);
+        if(!ins.valid) {
+            printf("Unused/Invalid formatting\n");
             continue;
         }
-        char* asmString = "";
-        strncpy(asmString, instructions[i] + skip, asmLength);
-        skip+=asmLength;
-        int asmStringLength = atoi(asmString);
-        strncpy(asmString, instructions[i] + skip, asmStringLength);
-        skip+=asmStringLength;
-        printf("AMS: %6s\t", asmString); // instruction name
-        memset(asmString, 0, asmStringLength);
-        int amountOfParams = instructions[i][skip] - '0';
-        skip++;
-        printf("Amount of params: %d\t", amountOfParams);
-        enum instruction_token params[3] = {0}; 
-        for(int j = 0; j < amountOfParams; j++) {
-            printf("%c:", instructions[i][skip]);
-            switch(instructions[i][skip++]) {
-                case 'I':
-                    params[j] = INSTRUCTIONTOKEN_IMMIDIATE;
+        printf("AMS: %5s\tOpcode: %2d\tAmount of params: %2d\t", ins.instruction_name, ins.opcode, ins.amountOfParams);
+        free(ins.instruction_name);
+        for(int j = 0; j < ins.amountOfParams; j++) {
+            switch(ins.params[j]) {
+                case INSTRUCTIONTOKEN_ADRESS:
+                    printf("A");
                     break;
-                case 'R':
-                    params[j] = INSTRUCTIONTOKEN_REGISTER;
+                case INSTRUCTIONTOKEN_IMMIDIATE:
+                    printf("I");
                     break;
-                case 'A':
-                    params[j] = INSTRUCTIONTOKEN_ADRESS;
+                case INSTRUCTIONTOKEN_POINTER:
+                    printf("P");
                     break;
-                case 'P':
-                    params[j] = INSTRUCTIONTOKEN_POINTER;
-                    break;
-                default:
-                    params[j] = INSTRUCTIONTOKEN_INVALID;
+                case INSTRUCTIONTOKEN_REGISTER:
+                    printf("R");
                     break;
             }
+            if(j < ins.amountOfParams - 1) printf(":");
         }
         printf("\n");
     }
 }
-*/
