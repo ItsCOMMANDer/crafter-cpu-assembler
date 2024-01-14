@@ -15,7 +15,7 @@ enum instruction_token {
     INSTRUCTIONTOKEN_INVALID = -1, 
 };
 
-struct instruction_info{
+struct instruction_info {
     char* instruction_name;
     uint8_t opcode;
     uint8_t amountOfParams;
@@ -23,6 +23,10 @@ struct instruction_info{
     bool valid;
 };
 
+struct stringArray {
+    char** strings;
+    int amountOfStrings;
+};
 
 
 
@@ -157,9 +161,76 @@ uint16_t getOpCode(char* insturction_name) {
     return -1;
 }
 
+struct stringArray getParams(char* assembly) {
+    struct stringArray res = {0};
+    bool newParamHasBegan = false;
+    int charsPerParam = 0;
+    int paramIndex = 0;
+    int i;
+    int brackets = 0;
+
+
+    for(i = 0; i < strlen(assembly); i++) {
+        if(assembly[i] == '[') brackets++;
+        if(assembly[i] == ']') brackets--;
+        if(assembly[i] != ',' && assembly[i] != ' ' && newParamHasBegan == false) {
+            newParamHasBegan = true;
+        }
+        if((assembly[i] == ',' || assembly[i] == ' ') && newParamHasBegan == true && brackets == 0) {
+            newParamHasBegan = false;
+            res.amountOfStrings++;
+        }
+    }
+    res.amountOfStrings++;
+    char** paramPointer = (char**)calloc(res.amountOfStrings, sizeof(char*));
+    brackets = 0;
+    
+    newParamHasBegan = false;
+
+    for(i = 0; i < strlen(assembly); i++) {
+        if(assembly[i] == '[') brackets++;
+        if(assembly[i] == ']') brackets--;
+        if(assembly[i] != ',' && assembly[i] != ' ' && newParamHasBegan == false) newParamHasBegan = true;
+        
+        if((assembly[i] == ',' || assembly[i] == ' ') && newParamHasBegan == true && brackets == 0) {
+            newParamHasBegan = false;
+            
+            paramPointer[paramIndex] = (char*)calloc(charsPerParam + 1, sizeof(char));
+            for(int j = 0; j < charsPerParam; j++) paramPointer[paramIndex][j] = assembly[i - (charsPerParam - j)];
+            paramIndex++;
+            charsPerParam = 0;
+        }
+        if(newParamHasBegan == true) charsPerParam++;
+    }
+
+    paramPointer[paramIndex] = (char*)calloc(charsPerParam + 1, sizeof(char));
+    for(int j = 0; j < charsPerParam; j++) paramPointer[paramIndex][j] = assembly[i - (charsPerParam - j)];
+    newParamHasBegan = false;
+
+    charsPerParam = 0;
+
+    res.strings = paramPointer;
+    return res;
+}
+
+
+
 void printInstructionData(void);
 
 int main(int argc, char** argv) {
+
+    char* string = "Int [80, f] , ff f";
+
+    struct stringArray t = getParams(string);
+
+    printf("%d\n", t.amountOfStrings);
+    printf("%s\n", t.strings[0]);
+    printf("%s\n", t.strings[1]);
+    printf("%s\n", t.strings[2]);
+    printf("%s\n", t.strings[3]);
+
+    return 0;
+
     if(argc <= 1) return -1;
     FILE* source_file = fopen(argv[1], "rb");
     if(source_file == NULL) {
@@ -208,6 +279,7 @@ int main(int argc, char** argv) {
     }
 
     //CONTINUE
+    for(int i = 0; i < lineCount; i++) {printf("%s\n", code[i]);}
 
     for(int i = 0; i < lineCount; i++) {
         free(code[i]);
