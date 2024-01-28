@@ -1,5 +1,5 @@
 ldmrr [ a ], b
 shr a
 pop
-call shutdown
-ret
+call 2000
+pop pc

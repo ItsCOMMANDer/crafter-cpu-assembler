@@ -42,12 +42,24 @@ int64_t max(int64_t a, int64_t b) {return a > b ? a : b;} //how is this not a fu
 int64_t min(int64_t a, int64_t b) {return a < b ? a : b;} //how is this not a function in math.h too?
 
 bool isDigit(char c) {return (c >= '0' && c <= '9');}
-bool isNumber(char* c) {
+bool isNumber(const char* c) {
     if(c == NULL) return false;
     for(int i = 0; i < strlen(c); i++) {if(!isDigit(c[i])) return false;}
     return true;
 }
 
+#define AMOUNT_OF_REGISTERS 8
+
+const char registers[8][4] = {
+    "A",
+    "B",
+    "C",
+    "H",
+    "L",
+    "PC",
+    "SP",
+    "BP",
+};
 
 const char instructions[32][32] = {
     "03ADD2RR",
@@ -104,6 +116,7 @@ char* getParamType(char* dest, enum instruction_token token) {
     }
     return dest;
 }
+
 
 
 struct instruction_info getInstructionInfo(uint8_t index) {
@@ -175,6 +188,10 @@ uint16_t getOpCode(const char* insturction_name) {
     return (uint16_t)-1;
 }
 
+uint16_t getBinInstruction() {
+    uint16_t res;
+}
+
 struct stringArray getParams(const char* assembly) {
     struct stringArray res = {0};
     bool newParamHasBegan = false;
@@ -214,21 +231,71 @@ struct stringArray getParams(const char* assembly) {
         } else {skip++;}
     }
 
-    char** previousStringArray = res.strings;
+    if(skip < asmLength) {
+        char** previousStringArray = res.strings;
 
-    res.strings = calloc(res.amountOfStrings + 1, sizeof(char*));
+        res.strings = calloc(res.amountOfStrings + 1, sizeof(char*));
 
-    memcpy(res.strings, previousStringArray, res.amountOfStrings * sizeof(char*));
+        memcpy(res.strings, previousStringArray, res.amountOfStrings * sizeof(char*));
 
-    res.strings[res.amountOfStrings] = calloc(asmParamLength + 1, sizeof(char));
+        res.strings[res.amountOfStrings] = calloc(asmParamLength + 1, sizeof(char));
     
-    strncpy(res.strings[res.amountOfStrings], assembly + skip, asmParamLength);
+        strncpy(res.strings[res.amountOfStrings], assembly + skip, asmParamLength);
 
-    res.amountOfStrings++;
+        res.amountOfStrings++;
+    }
 
     return res;
 }
 
+bool validateParamType(const char* param, enum instruction_token token) {
+    switch ((int)token)
+    {
+    case INSTRUCTIONTOKEN_IMMIDIATE:
+        if(isNumber(param)) {
+            return (uint32_t)atoi(param) < 255;
+        } else {return false;}
+        break;
+
+    case INSTRUCTIONTOKEN_ADRESS:
+        if(isNumber(param)) {
+            return (uint32_t)atoi(param) < 2047;
+        } else {return false;}
+        break;
+
+    case INSTRUCTIONTOKEN_REGISTER:
+        for(int i = 0; i < AMOUNT_OF_REGISTERS; i++) {
+            if(_strcmpi(param, registers[i]) == 0) return true;
+        }
+        return false;
+        break;
+
+    case INSTRUCTIONTOKEN_POINTER:
+        if(strlen(param) <= 2) return false;
+        char* pointerString = calloc(strlen(param) - 2, sizeof(char));
+
+        strncpy(pointerString, param + 1, strlen(param) - 2);
+
+        struct stringArray pointerParams = getParams(pointerString);
+
+        if(pointerParams.amountOfStrings != 1) {return false;}
+
+        if(validateParamType(pointerParams.strings[0], INSTRUCTIONTOKEN_REGISTER)) {
+            freeStringArray(pointerParams);
+            free(pointerString);
+            return true;
+        } else {
+            freeStringArray(pointerParams);
+            free(pointerString);
+            return false;
+        }
+        break;
+
+    
+    default:
+        break;
+    }
+}
 
 
 void printInstructionData(void);
@@ -304,14 +371,34 @@ int main(int argc, char** argv) {
         
         uint16_t opcode = getOpCode(params.strings[0]);
 
-        printf("Instruction \"%s\" has opcode of %d\n", params.strings[0], opcode);
+        struct instruction_info instruction = getInstructionInfo(opcode);
+
+        if(!instruction.valid) {
+            printf("Error Line %d:\n\tInstruction \"%s\" doesn't exsist.\n", i, params.strings[0]);
+            freeStringArray(params);
+            free(instruction.instruction_name);
+            goto error_cleanup;
+        }
+
+        for(int j = 1; j < params.amountOfStrings; j++) {
+            bool result = validateParamType(params.strings[j], instruction.params[j - 1]);
+            if(!result) {
+                printf("Error Line %d:\n\tWrong parameter.");
+                goto error_cleanup;
+            }
+        }
+
 
         freeStringArray(params);
     }
 
+    printf("Done\n");
+
+    error_cleanup:
+
     freeStringArray(code);
 
-    return 42;
+    return 0;
 }
 
 
