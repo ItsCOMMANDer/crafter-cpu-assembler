@@ -28,7 +28,18 @@ struct stringArray {
     int amountOfStrings;
 };
 
+void freeStringArray(struct stringArray array) {
+    if(array.strings == NULL) return;
+    for(int i = 0; i < array.amountOfStrings; i++) {
+        if(array.strings[i] == NULL) continue;
+        free(array.strings[i]);
+    }
+}
 
+
+
+int64_t max(int64_t a, int64_t b) {return a > b ? a : b;} //how is this not a function in math.h?
+int64_t min(int64_t a, int64_t b) {return a < b ? a : b;} //how is this not a function in math.h too?
 
 bool isDigit(char c) {return (c >= '0' && c <= '9');}
 bool isNumber(char* c) {
@@ -73,7 +84,7 @@ const char instructions[32][32] = {
     "03NOP0",
 };
 
-char* getParamType( char* dest, enum instruction_token token) {
+char* getParamType(char* dest, enum instruction_token token) {
     switch (token) {
         case INSTRUCTIONTOKEN_IMMIDIATE:
             strncpy(dest, "INSTRUCTIONTOKEN_IMMIDIATE", 26);
@@ -109,21 +120,23 @@ struct instruction_info getInstructionInfo(uint8_t index) {
         ret.valid = false;
         return ret;        
     }
+
     if(asmLength <= 0) {
         ret.valid = false;
         return ret;        
     }
-    char* asmString = "";
+
+    char* asmString = calloc(asmLength + 1, sizeof(char));
     strncpy(asmString, instructions[index] + skip, asmLength);
+    ret.instruction_name = calloc(sizeof(char), asmLength);
+    strncpy(ret.instruction_name, asmString, asmLength);
+    free(asmString);
+
     skip+=asmLength;
-    int asmStringLength = atoi(asmString);
-    strncpy(asmString, instructions[index] + skip, asmStringLength);
-    skip+=asmStringLength;
-    ret.instruction_name = calloc(sizeof(char), asmStringLength + 1);
-    strncpy(ret.instruction_name, asmString, asmStringLength);
     int amountOfParams = instructions[index][skip] - '0';
     ret.amountOfParams = amountOfParams;
     skip++;
+
     enum instruction_token params[3] = {0}; 
     for(int j = 0; j < amountOfParams; j++) {
         switch(instructions[index][skip++]) {
@@ -146,10 +159,11 @@ struct instruction_info getInstructionInfo(uint8_t index) {
     }
     
     memcpy(ret.params, params, sizeof(params));
+
     return ret;
 }
 
-uint16_t getOpCode(char* insturction_name) {
+uint16_t getOpCode(const char* insturction_name) {
     for(int i = 0; i < 32; i++) {
         struct instruction_info info = getInstructionInfo(i);
         if(_stricmp(insturction_name, info.instruction_name) == 0) {
@@ -158,10 +172,10 @@ uint16_t getOpCode(char* insturction_name) {
         }
         free(info.instruction_name);
     }
-    return -1;
+    return (uint16_t)-1;
 }
 
-struct stringArray getParams(char* assembly) {
+struct stringArray getParams(const char* assembly) {
     struct stringArray res = {0};
     bool newParamHasBegan = false;
     int charsPerParam = 0;
@@ -169,47 +183,49 @@ struct stringArray getParams(char* assembly) {
     int i;
     int brackets = 0;
 
+    int skip = 0;
 
-    for(i = 0; i < strlen(assembly); i++) {
-        if(assembly[i] == '[') brackets++;
-        if(assembly[i] == ']') brackets--;
-        if(assembly[i] != ',' && assembly[i] != ' ' && newParamHasBegan == false) {
-            newParamHasBegan = true;
-        }
-        if((assembly[i] == ',' || assembly[i] == ' ') && newParamHasBegan == true && brackets == 0) {
-            newParamHasBegan = false;
-            res.amountOfStrings++;
-        }
+    size_t asmLength = strlen(assembly);
+    size_t asmParamLength = 0;
+
+    for(int i = 0; i < asmLength; i++) {
+        if(assembly[i] != ' ' && assembly[i] != '\t' && assembly[i] != ',') {newParamHasBegan = true;}
+
+        if(newParamHasBegan) {
+            if(assembly[i] == '[') {brackets++;}
+            if(assembly[i] == ']') {brackets--;}
+
+            if((assembly[i] == ' ' || assembly[i] == '\t' || assembly[i] == ',' || assembly[i] == '\0') && brackets == 0) {
+                char** previousStringArray = res.strings;
+
+                res.strings = calloc(res.amountOfStrings + 1, sizeof(char*));
+
+                memcpy(res.strings, previousStringArray, res.amountOfStrings * sizeof(char*));
+
+                res.strings[res.amountOfStrings] = calloc(asmParamLength, sizeof(char));
+                
+                strncpy(res.strings[res.amountOfStrings], assembly + skip, asmParamLength);
+
+                skip += asmParamLength + 1;
+                asmParamLength = 0;
+                newParamHasBegan = false;
+                res.amountOfStrings++;
+            } else { asmParamLength++;}
+        } else {skip++;}
     }
-    res.amountOfStrings++;
-    char** paramPointer = (char**)calloc(res.amountOfStrings, sizeof(char*));
-    brackets = 0;
+
+    char** previousStringArray = res.strings;
+
+    res.strings = calloc(res.amountOfStrings + 1, sizeof(char*));
+
+    memcpy(res.strings, previousStringArray, res.amountOfStrings * sizeof(char*));
+
+    res.strings[res.amountOfStrings] = calloc(asmParamLength + 1, sizeof(char));
     
-    newParamHasBegan = false;
+    strncpy(res.strings[res.amountOfStrings], assembly + skip, asmParamLength);
 
-    for(i = 0; i < strlen(assembly); i++) {
-        if(assembly[i] == '[') brackets++;
-        if(assembly[i] == ']') brackets--;
-        if(assembly[i] != ',' && assembly[i] != ' ' && newParamHasBegan == false) newParamHasBegan = true;
-        
-        if((assembly[i] == ',' || assembly[i] == ' ') && newParamHasBegan == true && brackets == 0) {
-            newParamHasBegan = false;
-            
-            paramPointer[paramIndex] = (char*)calloc(charsPerParam + 1, sizeof(char));
-            for(int j = 0; j < charsPerParam; j++) paramPointer[paramIndex][j] = assembly[i - (charsPerParam - j)];
-            paramIndex++;
-            charsPerParam = 0;
-        }
-        if(newParamHasBegan == true) charsPerParam++;
-    }
+    res.amountOfStrings++;
 
-    paramPointer[paramIndex] = (char*)calloc(charsPerParam + 1, sizeof(char));
-    for(int j = 0; j < charsPerParam; j++) paramPointer[paramIndex][j] = assembly[i - (charsPerParam - j)];
-    newParamHasBegan = false;
-
-    charsPerParam = 0;
-
-    res.strings = paramPointer;
     return res;
 }
 
@@ -218,6 +234,7 @@ struct stringArray getParams(char* assembly) {
 void printInstructionData(void);
 
 int main(int argc, char** argv) {
+
     if(argc <= 1) return -1;
     FILE* source_file = fopen(argv[1], "rb");
     if(source_file == NULL) {
@@ -226,52 +243,74 @@ int main(int argc, char** argv) {
     }
 
     fseek(source_file, 0, SEEK_END);
-    long long fileLength = ftell(source_file);
+    uint64_t fileLength = ftell(source_file);
+    fseek(source_file, 0, SEEK_SET);
     if (fileLength == 0) {
         printf("File is empty.\n");
         fclose(source_file);
         return -1;
     }
 
-    char *buffer = calloc(fileLength + 1, sizeof(char));
-    fseek(source_file, 0, SEEK_SET);
-    fread(buffer, sizeof(char), fileLength, source_file);
-    fclose(source_file);
+    char* codeBuffer = calloc(fileLength, sizeof(char));
 
-    uint64_t lineCount = 1;
-    int maxCharCount = 0;
-    int charCount = 0;
+    fread(codeBuffer, fileLength, sizeof(char), source_file);
 
-    for(uint64_t i = 0; i < fileLength + 1; i++) {
-        if(buffer[i] == '\n' || buffer[i] == '\0') {
-            if(buffer[i] != '\0') lineCount++;
-            maxCharCount = max(maxCharCount,charCount);
-            charCount = 0;
+    struct stringArray code = { 0 };
+
+    uint64_t characterInLine = 0;
+    uint64_t skip = 0;
+
+    for(uint64_t i = 0; i < fileLength; i++) {
+        if(codeBuffer[i] == '\n') {
+            //
+            char** previousStringArray = code.strings;
+
+            code.strings = calloc(code.amountOfStrings + 1, sizeof(char*));
+
+            memcpy(code.strings, previousStringArray, code.amountOfStrings * sizeof(char*));
+
+            code.strings[code.amountOfStrings] = calloc(characterInLine, sizeof(char));
+
+            strncpy(code.strings[code.amountOfStrings], codeBuffer + skip, characterInLine - 1);
+
+            skip += characterInLine + 1;
+            characterInLine = 0;
+            code.amountOfStrings++;
+
         } else {
-            charCount++;
+            characterInLine++;
         }
     }
 
-    printf("\nLine Count: %llu\nLongest Line: %d\n", lineCount, maxCharCount);
-    
-    char** code = calloc(lineCount, sizeof(char*));
-    
-    int index = 0;
-    int offset = 0;
+    char** previousStringArray = code.strings;
 
-    for (int i = 0; i < lineCount; i++) {
-        code[i] = calloc(maxCharCount + 1, sizeof(char));
-        sscanf(buffer + offset, "%[^\n]%n", code[i], &index); //idk how the "%[^\n]%n" tbh
-        offset += index + 1;
+    code.strings = calloc(code.amountOfStrings + 1, sizeof(char*));
+
+    memcpy(code.strings, previousStringArray, code.amountOfStrings * sizeof(char*));
+
+    code.strings[code.amountOfStrings] = calloc(characterInLine + 1, sizeof(char));
+
+    strncpy(code.strings[code.amountOfStrings], codeBuffer + skip, characterInLine);
+
+    code.amountOfStrings++;
+
+
+    
+    fclose(source_file);
+    free(codeBuffer);
+
+    for(int i = 0; i < code.amountOfStrings; i++) {
+        struct stringArray params = getParams(code.strings[i]);
+        
+        uint16_t opcode = getOpCode(params.strings[0]);
+
+        printf("Instruction \"%s\" has opcode of %d\n", params.strings[0], opcode);
+
+        freeStringArray(params);
     }
 
-    //CONTINUE
+    freeStringArray(code);
 
-    for(int i = 0; i < lineCount; i++) {
-        free(code[i]);
-    }
-    free(code);
-    
     return 42;
 }
 
@@ -283,7 +322,7 @@ void printInstructionData(void) {
             printf("Unused/Invalid formatting\n");
             continue;
         }
-        printf("AMS: %5s\tOpcode: %2d\tAmount of params: %2d\t", ins.instruction_name, ins.opcode, ins.amountOfParams);
+        printf("ASM: '%5s'\tOpcode: %2d\tAmount of params: %2d\t", ins.instruction_name, ins.opcode, ins.amountOfParams);
         free(ins.instruction_name);
         for(int j = 0; j < ins.amountOfParams; j++) {
             switch(ins.params[j]) {

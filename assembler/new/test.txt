@@ -1,3 +1,0 @@
-mov a, 5
-shr a
-call shutdown
