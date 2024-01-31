@@ -7,10 +7,18 @@
 
 #include <math.h>
 
+#define OPCODE_SHIFT 11
+
+#define REG0_SHIFT 0
+#define REG1_SHIFT 3
+#define REG2_SHIFT 6
+
+#define IMMIDIATE_SHIFT 3
+
 enum instruction_token {
     INSTRUCTIONTOKEN_IMMIDIATE = 0,
     INSTRUCTIONTOKEN_REGISTER = 1,
-    INSTRUCTIONTOKEN_ADRESS = 2,
+    INSTRUCTIONTOKEN_ADDRESS = 2,
     INSTRUCTIONTOKEN_POINTER = 3,
     INSTRUCTIONTOKEN_INVALID = -1, 
 };
@@ -104,8 +112,8 @@ char* getParamType(char* dest, enum instruction_token token) {
         case INSTRUCTIONTOKEN_REGISTER:
             strncpy(dest, "INSTRUCTIONTOKEN_REGISTER", 25);
             break;
-        case INSTRUCTIONTOKEN_ADRESS:
-            strncpy(dest, "INSTRUCTIONTOKEN_ADRESS", 23);
+        case INSTRUCTIONTOKEN_ADDRESS:
+            strncpy(dest, "INSTRUCTIONTOKEN_ADDRESS", 23);
             break;
         case INSTRUCTIONTOKEN_POINTER:
             strncpy(dest, "INSTRUCTIONTOKEN_POINTER", 24);
@@ -160,7 +168,7 @@ struct instruction_info getInstructionInfo(uint8_t index) {
                 params[j] = INSTRUCTIONTOKEN_REGISTER;
                 break;
             case 'A':
-                params[j] = INSTRUCTIONTOKEN_ADRESS;
+                params[j] = INSTRUCTIONTOKEN_ADDRESS;
                 break;
             case 'P':
                 params[j] = INSTRUCTIONTOKEN_POINTER;
@@ -186,10 +194,6 @@ uint16_t getOpCode(const char* insturction_name) {
         free(info.instruction_name);
     }
     return (uint16_t)-1;
-}
-
-uint16_t getBinInstruction() {
-    uint16_t res;
 }
 
 struct stringArray getParams(const char* assembly) {
@@ -248,46 +252,49 @@ struct stringArray getParams(const char* assembly) {
     return res;
 }
 
-bool validateParamType(const char* param, enum instruction_token token) {
+int validateParamType(const char* param, enum instruction_token token) {
     switch ((int)token)
     {
     case INSTRUCTIONTOKEN_IMMIDIATE:
         if(isNumber(param)) {
-            return (uint32_t)atoi(param) < 255;
-        } else {return false;}
+            return ((uint32_t)atoi(param) < 255) ? -1 : -2;
+        } else {return -2;}
         break;
 
-    case INSTRUCTIONTOKEN_ADRESS:
+    case INSTRUCTIONTOKEN_ADDRESS:
         if(isNumber(param)) {
             return (uint32_t)atoi(param) < 2047;
-        } else {return false;}
+        } else {return -2;}
         break;
 
     case INSTRUCTIONTOKEN_REGISTER:
         for(int i = 0; i < AMOUNT_OF_REGISTERS; i++) {
-            if(_strcmpi(param, registers[i]) == 0) return true;
+            if(_strcmpi(param, registers[i]) == 0) return i;
         }
-        return false;
+        return -2;
         break;
 
     case INSTRUCTIONTOKEN_POINTER:
-        if(strlen(param) <= 2) return false;
+        if(param[0] != '[' || param[strlen(param) - 1] != ']') {return -2;}
+        if(strlen(param) <= 2) return -2;
         char* pointerString = calloc(strlen(param) - 2, sizeof(char));
 
         strncpy(pointerString, param + 1, strlen(param) - 2);
 
         struct stringArray pointerParams = getParams(pointerString);
 
-        if(pointerParams.amountOfStrings != 1) {return false;}
+        if(pointerParams.amountOfStrings != 1) {return -2;}
 
-        if(validateParamType(pointerParams.strings[0], INSTRUCTIONTOKEN_REGISTER)) {
+        int result = 0;
+
+        if((result = validateParamType(pointerParams.strings[0], INSTRUCTIONTOKEN_REGISTER)) != -2) {
             freeStringArray(pointerParams);
             free(pointerString);
-            return true;
+            return result;
         } else {
             freeStringArray(pointerParams);
             free(pointerString);
-            return false;
+            return -2;
         }
         break;
 
@@ -297,11 +304,74 @@ bool validateParamType(const char* param, enum instruction_token token) {
     }
 }
 
+int assembleInstruction(uint8_t opcode, uint16_t param1, uint16_t param2, uint16_t param3) {
+    uint16_t bin_instruction = 0;
+    
+    if(opcode > 31) return -1;
+
+    struct instruction_info info = getInstructionInfo(opcode);
+    if(!info.valid) return -1;
+    
+    bin_instruction |= opcode << OPCODE_SHIFT;
+
+    uint16_t parameters[3] = {param1, param2, param3};
+
+    for(int i = 0; i < info.amountOfParams; i++) {
+        switch(info.params[i]) {
+            case INSTRUCTIONTOKEN_ADDRESS:
+                if(param1 > 2047) return -1;
+                bin_instruction |= parameters[0];
+                return bin_instruction;
+                break;
+
+            case INSTRUCTIONTOKEN_IMMIDIATE:
+                if(parameters[i] > 255) return -1;
+                bin_instruction |= parameters[i] << IMMIDIATE_SHIFT;
+                break;
+
+            case INSTRUCTIONTOKEN_REGISTER:
+                if(parameters[i] > 7) return -1;
+                switch(i) {
+                    case 0:
+                        bin_instruction |= parameters[i] << REG0_SHIFT;
+                        break;
+
+                    case 1:
+                        bin_instruction |= parameters[i] << REG1_SHIFT;
+                        break;
+
+                    case 2:
+                        bin_instruction |= parameters[i] << REG2_SHIFT;
+                        break;
+                }
+                break;
+            
+            case INSTRUCTIONTOKEN_POINTER:
+                if(parameters[i] > 7) return -1;
+                switch(i) {
+                    case 0:
+                        bin_instruction |= parameters[i] << REG0_SHIFT;
+                        break;
+
+                    case 1:
+                        bin_instruction |= parameters[i] << REG1_SHIFT;
+                        break;
+
+                    case 2:
+                        bin_instruction |= parameters[i] << REG2_SHIFT;
+                        break;
+                }
+                break;
+        }
+    }
+    return bin_instruction;
+
+}
+
 
 void printInstructionData(void);
 
 int main(int argc, char** argv) {
-
     if(argc <= 1) return -1;
     FILE* source_file = fopen(argv[1], "rb");
     if(source_file == NULL) {
@@ -329,7 +399,6 @@ int main(int argc, char** argv) {
 
     for(uint64_t i = 0; i < fileLength; i++) {
         if(codeBuffer[i] == '\n') {
-            //
             char** previousStringArray = code.strings;
 
             code.strings = calloc(code.amountOfStrings + 1, sizeof(char*));
@@ -366,7 +435,9 @@ int main(int argc, char** argv) {
     fclose(source_file);
     free(codeBuffer);
 
+            printf("BLBRK\n");
     for(int i = 0; i < code.amountOfStrings; i++) {
+            printf("FLBRK\n");
         struct stringArray params = getParams(code.strings[i]);
         
         uint16_t opcode = getOpCode(params.strings[0]);
@@ -374,20 +445,53 @@ int main(int argc, char** argv) {
         struct instruction_info instruction = getInstructionInfo(opcode);
 
         if(!instruction.valid) {
-            printf("Error Line %d:\n\tInstruction \"%s\" doesn't exsist.\n", i, params.strings[0]);
+            printf("Error Line %d:\n\tInstruction \"%s\" doesn't exsist.\n", i + 1, params.strings[0]);
             freeStringArray(params);
             free(instruction.instruction_name);
-            goto error_cleanup;
+            
+            freeStringArray(code);
+
+            printf("BRRK\n");
+
+            return 0;
         }
 
         for(int j = 1; j < params.amountOfStrings; j++) {
-            bool result = validateParamType(params.strings[j], instruction.params[j - 1]);
-            if(!result) {
-                printf("Error Line %d:\n\tWrong parameter.");
-                goto error_cleanup;
+            int result = validateParamType(params.strings[j], instruction.params[j - 1]);
+            if(result == -2) {
+                printf("Error Line %d:\n\tWrong parameter.", i + 1);
+                
+                freeStringArray(code);
+            printf("BRRK\n");
+
+                return 0;
             }
         }
 
+        //
+        int bin_instruction = 0;
+        uint16_t bin_params[3] = { 0, 0, 0 };
+
+        for(int j = 0; j < instruction.amountOfParams; j++) {
+            printf("BLRK\n");
+            switch(instruction.params[j]) {
+                case INSTRUCTIONTOKEN_ADDRESS:
+                    bin_params[j] = atoi(params.strings[j + 1]);
+                    break;
+
+                case INSTRUCTIONTOKEN_IMMIDIATE:
+                    bin_params[j] = atoi(params.strings[j + 1]);
+                    break;
+
+                case INSTRUCTIONTOKEN_REGISTER:
+                    bin_params[j] = validateParamType(params.strings[j + 1], INSTRUCTIONTOKEN_REGISTER);
+                    break;
+
+                case INSTRUCTIONTOKEN_POINTER:
+                    bin_params[j] = validateParamType(params.strings[j + 1], INSTRUCTIONTOKEN_REGISTER);
+                    break;
+            }
+        }
 
         freeStringArray(params);
     }
@@ -413,7 +517,7 @@ void printInstructionData(void) {
         free(ins.instruction_name);
         for(int j = 0; j < ins.amountOfParams; j++) {
             switch(ins.params[j]) {
-                case INSTRUCTIONTOKEN_ADRESS:
+                case INSTRUCTIONTOKEN_ADDRESS:
                     printf("A");
                     break;
                 case INSTRUCTIONTOKEN_IMMIDIATE:
