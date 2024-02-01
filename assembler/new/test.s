@@ -1,5 +1,5 @@
 ldmrr [ a ], b
 shr a
-pop
+pop a
 call 2000
 pop  pc 

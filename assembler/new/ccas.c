@@ -46,8 +46,8 @@ void freeStringArray(struct stringArray array) {
 
 
 
-int64_t max(int64_t a, int64_t b) {return a > b ? a : b;} //how is this not a function in math.h?
-int64_t min(int64_t a, int64_t b) {return a < b ? a : b;} //how is this not a function in math.h too?
+long long max(long long a, long long b) {return a > b ? a : b;} //how is this not a function in math.h?
+long long min(long long a, long long b) {return a < b ? a : b;} //how is this not a function in math.h too?
 
 bool isDigit(char c) {return (c >= '0' && c <= '9');}
 bool isNumber(const char* c) {
@@ -447,10 +447,13 @@ int main(int argc, char** argv) {
             freeStringArray(params);
             free(instruction.instruction_name);
             
-            freeStringArray(code);
+            goto error_cleanup;
+        }
 
+        if((params.amountOfStrings - 1) != instruction.amountOfParams) {
+            printf("Error Line:%d:\n\tWrong amount of parameters.\n", i + 1);
 
-            return 0;
+            goto error_cleanup;
         }
 
         for(int j = 1; j < params.amountOfStrings; j++) {
@@ -458,9 +461,7 @@ int main(int argc, char** argv) {
             if(result == -2) {
                 printf("Error Line %d:\n\tWrong parameter.", i + 1);
                 
-                freeStringArray(code);
-
-                return 0;
+                goto error_cleanup;
             }
         }
 
@@ -469,7 +470,8 @@ int main(int argc, char** argv) {
         uint16_t bin_params[3] = { 0, 0, 0 };
 
         for(int j = 0; j < instruction.amountOfParams; j++) {
-            /*
+            
+
             switch(instruction.params[j]) {
                 case INSTRUCTIONTOKEN_ADDRESS:
                     bin_params[j] = atoi(params.strings[j + 1]);
@@ -484,10 +486,12 @@ int main(int argc, char** argv) {
                     break;
 
                 case INSTRUCTIONTOKEN_POINTER:
-                    bin_params[j] = validateParamType(params.strings[j + 1], INSTRUCTIONTOKEN_REGISTER);
+                    bin_params[j] = validateParamType(params.strings[j + 1], INSTRUCTIONTOKEN_POINTER);
                     break;
-            }*/
+            }
+
         }
+        printf("INs %d: 0x%X\n", i, assembleInstruction(instruction.opcode, bin_params[0], bin_params[1], bin_params[2]));
 
         freeStringArray(params);
     }
