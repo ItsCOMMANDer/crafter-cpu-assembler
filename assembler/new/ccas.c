@@ -435,9 +435,7 @@ int main(int argc, char** argv) {
     fclose(source_file);
     free(codeBuffer);
 
-            printf("BLBRK\n");
     for(int i = 0; i < code.amountOfStrings; i++) {
-            printf("FLBRK\n");
         struct stringArray params = getParams(code.strings[i]);
         
         uint16_t opcode = getOpCode(params.strings[0]);
@@ -451,7 +449,6 @@ int main(int argc, char** argv) {
             
             freeStringArray(code);
 
-            printf("BRRK\n");
 
             return 0;
         }
@@ -462,7 +459,6 @@ int main(int argc, char** argv) {
                 printf("Error Line %d:\n\tWrong parameter.", i + 1);
                 
                 freeStringArray(code);
-            printf("BRRK\n");
 
                 return 0;
             }
@@ -473,7 +469,7 @@ int main(int argc, char** argv) {
         uint16_t bin_params[3] = { 0, 0, 0 };
 
         for(int j = 0; j < instruction.amountOfParams; j++) {
-            printf("BLRK\n");
+            /*
             switch(instruction.params[j]) {
                 case INSTRUCTIONTOKEN_ADDRESS:
                     bin_params[j] = atoi(params.strings[j + 1]);
@@ -490,7 +486,7 @@ int main(int argc, char** argv) {
                 case INSTRUCTIONTOKEN_POINTER:
                     bin_params[j] = validateParamType(params.strings[j + 1], INSTRUCTIONTOKEN_REGISTER);
                     break;
-            }
+            }*/
         }
 
         freeStringArray(params);
