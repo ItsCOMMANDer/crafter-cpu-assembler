@@ -435,6 +435,8 @@ int main(int argc, char** argv) {
     fclose(source_file);
     free(codeBuffer);
 
+    FILE* output = fopen("./output.bin", "wb");
+
     for(int i = 0; i < code.amountOfStrings; i++) {
         struct stringArray params = getParams(code.strings[i]);
         
@@ -493,12 +495,23 @@ int main(int argc, char** argv) {
         }
         printf("INs %d: 0x%X\n", i, assembleInstruction(instruction.opcode, bin_params[0], bin_params[1], bin_params[2]));
 
+        uint16_t tmpA = assembleInstruction(instruction.opcode, bin_params[0], bin_params[1], bin_params[2]);
+        
+        uint16_t tmp = (tmpA << 8) | (tmpA >> 8);
+
+        fwrite(&tmp, sizeof(uint16_t), 1, output);
+        printf("Wrote %d to file\n", tmp);
+
+
         freeStringArray(params);
     }
+
 
     printf("Done\n");
 
     error_cleanup:
+
+    fclose(output);
 
     freeStringArray(code);
 
