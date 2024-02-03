@@ -15,6 +15,8 @@
 
 #define IMMIDIATE_SHIFT 3
 
+#define AMOUNT_OF_REGISTERS 8
+
 enum instruction_token {
     INSTRUCTIONTOKEN_IMMIDIATE = 0,
     INSTRUCTIONTOKEN_REGISTER = 1,
@@ -44,8 +46,6 @@ void freeStringArray(struct stringArray array) {
     }
 }
 
-
-
 long long max(long long a, long long b) {return a > b ? a : b;} //how is this not a function in math.h?
 long long min(long long a, long long b) {return a < b ? a : b;} //how is this not a function in math.h too?
 
@@ -56,7 +56,6 @@ bool isNumber(const char* c) {
     return true;
 }
 
-#define AMOUNT_OF_REGISTERS 8
 
 const char registers[8][4] = {
     "A",
