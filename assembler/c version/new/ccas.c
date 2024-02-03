@@ -256,13 +256,13 @@ int validateParamType(const char* param, enum instruction_token token) {
     {
     case INSTRUCTIONTOKEN_IMMIDIATE:
         if(isNumber(param)) {
-            return ((uint32_t)atoi(param) < 255) ? -1 : -2;
+            return ((uint32_t)atoi(param) <= 255) ? -1 : -2;
         } else {return -2;}
         break;
 
     case INSTRUCTIONTOKEN_ADDRESS:
         if(isNumber(param)) {
-            return (uint32_t)atoi(param) < 2047;
+            return (uint32_t)atoi(param) <= 2047;
         } else {return -2;}
         break;
 
