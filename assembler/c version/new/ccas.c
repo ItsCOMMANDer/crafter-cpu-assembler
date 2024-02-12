@@ -371,7 +371,10 @@ int assembleInstruction(uint8_t opcode, uint16_t param1, uint16_t param2, uint16
 void printInstructionData(void);
 
 int main(int argc, char** argv) {
-    if(argc <= 1) return -1;
+    if(argc <= 1) {
+        printf("NO source file provided.\n");
+        return -1;
+    }
     FILE* source_file = fopen(argv[1], "rb");
     if(source_file == NULL) {
         printf("Error opening file.\n");
@@ -428,8 +431,6 @@ int main(int argc, char** argv) {
     strncpy(code.strings[code.amountOfStrings], codeBuffer + skip, characterInLine);
 
     code.amountOfStrings++;
-
-
     
     fclose(source_file);
     free(codeBuffer);
@@ -466,7 +467,6 @@ int main(int argc, char** argv) {
             }
         }
 
-        //
         int bin_instruction = 0;
         uint16_t bin_params[3] = { 0, 0, 0 };
 
