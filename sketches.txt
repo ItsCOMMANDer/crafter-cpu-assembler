@@ -1,0 +1,37 @@
+reg
+reg imm
+reg reg
+addr
+
+
+tim	    3
+
+
+addr in pc  1
+
+imm on bus  1
+
+reg0 oe     1
+reg0 ie     1
+
+reg1 oe     1
+reg1 ie     1
+
+ram read    1
+ram write   1
+
+alu in0     1
+alu in1     1
+alu out     1
+se          1
+
+upflag      1
+
+hlt	    1
+
+
+
+flags
+
+neg / !neg
+zero
