@@ -50,7 +50,7 @@ Op    | Name   | Usage                               | Description              
 10000 | JMP    | JMP  (Address)                      | Jumps to (Address)
 10001 | JZ     | JZ   (Address)                      | Jumps to (Address) if zero flag is set
 10010 | JN     | JN   (Address)                      | Jumps to (Address) if negative flag is set
-10011 | JP     | JP   (Address)                      | Jumps to (Address) if positive flag is set
+10011 | JP     | JP   (Address)                      | Jumps to (Address) if negative flag is not set
 10100 | LDIR   | LD   (REG), (Immediate)             | Loads (Immediate) into (REG)
 10101 | LDRR   | LD   (REG 1), (REG 2)               | Loads (REG 2) in to (REG 1)
 10110 | LDRMR  | LD   (REG 1), [(REG 2)]             | Loads the value of memory at location (REG 2) in to (REG 1)
