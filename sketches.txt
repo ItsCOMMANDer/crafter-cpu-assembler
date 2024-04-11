@@ -6,10 +6,18 @@ addr
 
 tim	    3
 
+ld ir       1
+
+inc pc      1 D
+
+pc in ram   1
+
+pc from ram 1
 
 addr in pc  1
 
 imm on bus  1
+addr on bus 1
 
 reg0 oe     1
 reg0 ie     1
@@ -17,13 +25,21 @@ reg0 ie     1
 reg1 oe     1
 reg1 ie     1
 
-ram read    1
-ram write   1
+ram read    1 D
+ram write   1 D
 
-alu in0     1
-alu in1     1
-alu out     1
-se          1
+inc mar     1
+dec mar     1
+
+alu in0     1 D
+alu in1     1 D
+alu out     1 D
+se          1 D
+
+cl carry    1 D
+set carry   1 D
+
+nex ins     1
 
 upflag      1
 
@@ -35,3 +51,35 @@ flags
 
 neg / !neg
 zero
+
+
+
+
+
+pc write source
+
+ram -> pc
+addr -> pc
+bus -> pc (idk why)
+
+
+
+add a, b
+
+LDIR
+INC PC
+
+REG0 OE | ALU0
+REG1 OE | ALU1
+ALU_OE | REG0 IE
+
+
+push pc
+
+LDIR
+INC PC
+
+
+
+
+
